@@ -21,7 +21,11 @@
     --accent-lo: rgba(201, 168, 124, 0.08);
     --accent-mid: rgba(201, 168, 124, 0.4);
     --green: #8db580;
+    --green-lo: rgba(141, 181, 128, 0.08);
     --red: #b07070;
+    --red-lo: rgba(176, 112, 112, 0.08);
+    --blue: #7a9ec9;
+    --blue-lo: rgba(122, 158, 201, 0.08);
     --r: 14px;
   }
 
@@ -37,17 +41,13 @@
     position: fixed; inset: 0; z-index: 0;
     overflow: hidden; background: #000;
   }
-
   #video-bg iframe, #yt-player {
-    position: absolute;
-    top: 50%; left: 50%;
+    position: absolute; top: 50%; left: 50%;
     width: 180vw; height: 180vh;
     min-width: 180vw; min-height: 180vh;
     transform: translate(-50%, -50%);
-    pointer-events: none; border: none;
-    object-fit: cover;
+    pointer-events: none; border: none; object-fit: cover;
   }
-
   #video-overlay {
     position: fixed; inset: 0; z-index: 1; pointer-events: none;
     background:
@@ -55,7 +55,6 @@
       linear-gradient(to top, rgba(12,10,14,0.3) 0%, transparent 30%);
   }
 
-  /* Fallback */
   #fallback-bg {
     position: fixed; inset: 0; z-index: 0; display: none;
     background: linear-gradient(-45deg, #0c0a1a, #151025, #0a1520, #12081a);
@@ -63,30 +62,45 @@
     animation: driftGrad 20s ease infinite;
   }
   #fallback-bg.active { display: block; }
-  @keyframes driftGrad { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+  @keyframes driftGrad { 0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%} }
 
   #rain-canvas { position: fixed; inset: 0; z-index: 1; pointer-events: none; display: none; }
   #rain-canvas.active { display: block; }
 
   /* ═══ TOP BAR ═══ */
-  #topbar {
-    position: fixed; top: 12px; right: 12px; z-index: 200;
-    display: flex; gap: 6px;
-  }
+  #topbar { position: fixed; top: 12px; right: 12px; z-index: 200; display: flex; gap: 6px; }
 
-  .tb-btn {
+  .tb {
     background: var(--glass); border: 1px solid var(--border);
     border-radius: 9px; color: var(--dim);
     height: 34px; padding: 0 12px; cursor: pointer;
     font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 300;
     backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
     display: flex; align-items: center; justify-content: center; gap: 5px;
-    transition: all 0.25s; white-space: nowrap;
-    letter-spacing: 0.3px;
+    transition: all 0.25s; white-space: nowrap; letter-spacing: 0.3px;
   }
-  .tb-btn:hover { color: var(--accent); border-color: var(--border-h); }
-  .tb-btn.active { color: var(--accent); background: var(--accent-lo); border-color: var(--accent-mid); }
-  .tb-btn.icon-only { width: 34px; padding: 0; font-size: 15px; }
+  .tb:hover { color: var(--accent); border-color: var(--border-h); }
+  .tb.on { color: var(--accent); background: var(--accent-lo); border-color: var(--accent-mid); }
+  .tb.icon { width: 34px; padding: 0; font-size: 15px; }
+
+  #vol-wrap { position: relative; display: flex; align-items: center; }
+  #vol-pop {
+    position: absolute; top: 40px; right: 0;
+    background: var(--glass-solid); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 14px;
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    display: none; flex-direction: column; align-items: center; gap: 8px;
+  }
+  #vol-pop.open { display: flex; animation: popIn 0.15s ease-out; }
+
+  #vol-slider {
+    -webkit-appearance: none; appearance: none;
+    width: 100px; height: 3px; background: var(--faint); border-radius: 2px; outline: none;
+  }
+  #vol-slider::-webkit-slider-thumb { -webkit-appearance:none; width:14px; height:14px; border-radius:50%; background:var(--accent); cursor:pointer; }
+  #vol-slider::-moz-range-thumb { width:14px; height:14px; border-radius:50%; border:none; background:var(--accent); cursor:pointer; }
+  #vol-lbl { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--dim); }
 
   /* ═══ SETTINGS ═══ */
   #settings {
@@ -94,48 +108,42 @@
     background: var(--glass-solid); border: 1px solid var(--border);
     border-radius: var(--r);
     backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-    padding: 20px; width: 340px;
-    display: none;
+    padding: 20px; width: 340px; display: none;
     box-shadow: 0 16px 48px rgba(0,0,0,0.5);
   }
   #settings.open { display: block; animation: popIn 0.2s ease-out; }
-  @keyframes popIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes popIn { from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)} }
 
   .sg { margin-bottom: 16px; }
   .sg:last-child { margin-bottom: 0; }
-  .sg-label { font-size: 11px; font-weight: 400; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dim); margin-bottom: 8px; }
-
+  .sg-label { font-size:11px; font-weight:400; letter-spacing:1.5px; text-transform:uppercase; color:var(--dim); margin-bottom:8px; }
   .sg-input {
-    width: 100%; background: rgba(255,255,255,0.04);
-    border: 1px solid var(--border); border-radius: 8px;
-    padding: 10px 12px; color: var(--text);
-    font-family: 'IBM Plex Mono', monospace; font-size: 12px;
-    outline: none; transition: border-color 0.2s;
+    width:100%; background:rgba(255,255,255,0.04);
+    border:1px solid var(--border); border-radius:8px;
+    padding:10px 12px; color:var(--text);
+    font-family:'IBM Plex Mono',monospace; font-size:12px;
+    outline:none; transition:border-color 0.2s;
   }
   .sg-input:focus { border-color: var(--accent-mid); }
   .sg-input::placeholder { color: var(--faint); }
-
-  .sg-hint { font-size: 11px; color: var(--faint); margin-top: 6px; line-height: 1.5; }
-  .sg-row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
-
+  .sg-hint { font-size:11px; color:var(--faint); margin-top:6px; line-height:1.5; }
+  .sg-row { display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; }
   .sg-btn {
-    background: var(--accent-lo); border: 1px solid var(--accent-mid);
-    border-radius: 8px; color: var(--accent); padding: 8px 16px;
-    font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 400;
-    cursor: pointer; transition: all 0.2s;
+    background:var(--accent-lo); border:1px solid var(--accent-mid);
+    border-radius:8px; color:var(--accent); padding:8px 16px;
+    font-family:'Outfit',sans-serif; font-size:13px; font-weight:400;
+    cursor:pointer; transition:all 0.2s;
   }
   .sg-btn:hover { background: rgba(201,168,124,0.15); }
-
   .sg-btn-sec {
-    background: rgba(255,255,255,0.03); border: 1px solid var(--border);
-    border-radius: 8px; color: var(--dim); padding: 8px 16px;
-    font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 400;
-    cursor: pointer; transition: all 0.2s;
+    background:rgba(255,255,255,0.03); border:1px solid var(--border);
+    border-radius:8px; color:var(--dim); padding:8px 16px;
+    font-family:'Outfit',sans-serif; font-size:13px; font-weight:400;
+    cursor:pointer; transition:all 0.2s;
   }
-  .sg-btn-sec:hover { color: var(--text); border-color: var(--border-h); }
-
-  .sg-status { font-size: 11px; margin-top: 6px; color: var(--green); display: none; }
-  .sg-status.show { display: block; animation: popIn 0.2s ease-out; }
+  .sg-btn-sec:hover { color:var(--text); border-color:var(--border-h); }
+  .sg-status { font-size:11px; margin-top:6px; color:var(--green); display:none; }
+  .sg-status.show { display:block; animation:popIn 0.2s ease-out; }
   .sg-status.err { color: var(--red); }
 
   /* ═══ MAIN LAYOUT ═══ */
@@ -144,7 +152,6 @@
     width: 100%; height: 100%;
     display: flex; flex-direction: column;
     padding: 28px 36px; gap: 20px;
-    transition: opacity 0.4s ease;
   }
 
   /* ── FLIP CLOCK ── */
@@ -153,165 +160,206 @@
     flex-shrink: 0; padding: 8px 0; gap: 4px;
     transition: all 0.4s ease;
   }
-
-  /* When panels hidden, center clock vertically */
-  #clock-row.centered {
-    flex: 1;
-    align-items: center;
-    padding: 0;
-  }
+  #clock-row.centered { flex: 1; align-items: center; padding: 0; }
 
   .fc-group { display: flex; gap: 4px; }
-
   .fc-sep {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 42px; font-weight: 300;
-    color: var(--accent); opacity: 0.5;
-    width: 20px; text-align: center; line-height: 70px;
-    animation: blink 1s ease-in-out infinite;
+    font-family:'Cormorant Garamond',serif; font-size:42px; font-weight:300;
+    color:var(--accent); opacity:0.5; width:20px; text-align:center;
+    line-height:70px; animation:blink 1s ease-in-out infinite;
   }
-  @keyframes blink { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.12; } }
+  @keyframes blink { 0%,100%{opacity:0.5}50%{opacity:0.12} }
 
-  .fd {
-    width: 52px; height: 70px;
-    position: relative; perspective: 500px;
-  }
-
+  .fd { width:52px; height:70px; position:relative; perspective:500px; }
   .fd-half {
-    position: absolute; left: 0; right: 0;
-    height: 50%; overflow: hidden;
-    background: var(--glass);
-    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-    border: 1px solid var(--border);
+    position:absolute; left:0; right:0; height:50%; overflow:hidden;
+    background:var(--glass);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border:1px solid var(--border);
   }
-  .fd-half.top { top: 0; border-radius: 10px 10px 0 0; border-bottom: 1px solid rgba(0,0,0,0.5); }
-  .fd-half.bot { bottom: 0; border-radius: 0 0 10px 10px; border-top: none; }
-
+  .fd-half.top { top:0; border-radius:10px 10px 0 0; border-bottom:1px solid rgba(0,0,0,0.5); }
+  .fd-half.bot { bottom:0; border-radius:0 0 10px 10px; border-top:none; }
   .fd-val {
-    position: absolute; left: 0; right: 0; height: 200%;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 38px; font-weight: 300; color: var(--text);
-    pointer-events: none;
+    position:absolute; left:0; right:0; height:200%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono',monospace; font-size:38px; font-weight:300;
+    color:var(--text); pointer-events:none;
   }
-  .fd-half.top .fd-val { top: 0; }
-  .fd-half.bot .fd-val { bottom: 0; }
+  .fd-half.top .fd-val { top:0; }
+  .fd-half.bot .fd-val { bottom:0; }
 
   .fd-flap {
-    position: absolute; left: 0; right: 0; height: 50%; overflow: hidden;
-    background: var(--glass);
-    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-    border: 1px solid var(--border); z-index: 5;
-    backface-visibility: hidden;
+    position:absolute; left:0; right:0; height:50%; overflow:hidden;
+    background:var(--glass);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border:1px solid var(--border); z-index:5; backface-visibility:hidden;
   }
-  .fd-flap.flap-top {
-    top: 0; border-radius: 10px 10px 0 0;
-    transform-origin: bottom center;
-    animation: flapDown 0.3s ease-in forwards;
-  }
-  .fd-flap.flap-bot {
-    bottom: 0; border-radius: 0 0 10px 10px;
-    transform-origin: top center; transform: rotateX(90deg);
-    animation: flapUp 0.3s 0.3s ease-out forwards;
-  }
-  .fd-flap.flap-top .fd-val { top: 0; }
-  .fd-flap.flap-bot .fd-val { bottom: 0; }
-  @keyframes flapDown { 0% { transform: rotateX(0); } 100% { transform: rotateX(-90deg); } }
-  @keyframes flapUp { 0% { transform: rotateX(90deg); } 100% { transform: rotateX(0); } }
+  .fd-flap.flap-top { top:0; border-radius:10px 10px 0 0; transform-origin:bottom center; animation:flapDown 0.3s ease-in forwards; }
+  .fd-flap.flap-bot { bottom:0; border-radius:0 0 10px 10px; transform-origin:top center; transform:rotateX(90deg); animation:flapUp 0.3s 0.3s ease-out forwards; }
+  .fd-flap.flap-top .fd-val { top:0; }
+  .fd-flap.flap-bot .fd-val { bottom:0; }
+  @keyframes flapDown { 0%{transform:rotateX(0)}100%{transform:rotateX(-90deg)} }
+  @keyframes flapUp { 0%{transform:rotateX(90deg)}100%{transform:rotateX(0)} }
 
-  .fc-meta {
-    display: flex; flex-direction: column;
-    margin-left: 14px; gap: 2px; padding-bottom: 6px;
-  }
-  .fc-ampm { font-size: 13px; font-weight: 200; letter-spacing: 3px; color: var(--accent); opacity: 0.7; }
-  .fc-date { font-family: 'Cormorant Garamond', serif; font-size: 13px; font-weight: 300; color: var(--dim); }
+  .fc-meta { display:flex; flex-direction:column; margin-left:14px; gap:2px; padding-bottom:6px; }
+  .fc-ampm { font-size:13px; font-weight:200; letter-spacing:3px; color:var(--accent); opacity:0.7; }
+  .fc-date { font-family:'Cormorant Garamond',serif; font-size:13px; font-weight:300; color:var(--dim); }
 
   /* ── CONTENT ── */
   #content {
-    flex: 1; display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px; min-height: 0;
+    flex:1; display:grid; grid-template-columns:1fr 1fr;
+    gap:20px; min-height:0;
     transition: opacity 0.35s ease, transform 0.35s ease;
   }
-
-  #content.hidden {
-    opacity: 0;
-    transform: translateY(12px);
-    pointer-events: none;
-    position: absolute;
-    visibility: hidden;
-  }
+  #content.hidden { opacity:0; transform:translateY(12px); pointer-events:none; position:absolute; visibility:hidden; }
 
   .card {
-    background: var(--glass); border: 1px solid var(--border);
-    border-radius: var(--r);
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    padding: 22px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
-    display: flex; flex-direction: column;
-    overflow: hidden; transition: border-color 0.3s;
+    background:var(--glass); border:1px solid var(--border);
+    border-radius:var(--r);
+    backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+    padding:22px; box-shadow:0 8px 32px rgba(0,0,0,0.25);
+    display:flex; flex-direction:column; overflow:hidden;
+    transition:border-color 0.3s;
   }
   .card:hover { border-color: var(--border-h); }
 
   .card-h {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 16px; font-weight: 400; color: var(--accent);
-    margin-bottom: 14px; letter-spacing: 0.5px;
-    display: flex; align-items: center; justify-content: space-between;
+    font-family:'Cormorant Garamond',serif; font-size:16px; font-weight:400;
+    color:var(--accent); margin-bottom:14px; letter-spacing:0.5px;
+    display:flex; align-items:center; justify-content:space-between;
   }
-  .card-h .cnt { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--faint); font-weight: 300; }
+  .card-h .cnt { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--faint); font-weight:300; }
 
   /* ── TASKS ── */
-  .col { display: flex; flex-direction: column; gap: 20px; min-height: 0; }
+  .col { display:flex; flex-direction:column; gap:16px; min-height:0; }
   #tasks-card { flex: 1; min-height: 0; }
 
-  .task-scroll { flex: 1; overflow-y: auto; padding-right: 4px; }
-  .task-scroll::-webkit-scrollbar { width: 3px; }
-  .task-scroll::-webkit-scrollbar-track { background: transparent; }
-  .task-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 2px; }
+  .task-scroll { flex:1; overflow-y:auto; padding-right:4px; }
+  .task-scroll::-webkit-scrollbar { width:3px; }
+  .task-scroll::-webkit-scrollbar-track { background:transparent; }
+  .task-scroll::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.06); border-radius:2px; }
 
   .ti {
-    display: flex; align-items: flex-start; gap: 11px;
-    padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.02);
-    animation: slideUp 0.2s ease-out;
+    display:flex; align-items:flex-start; gap:11px;
+    padding:9px 0; border-bottom:1px solid rgba(255,255,255,0.02);
+    animation:slideUp 0.2s ease-out;
   }
-  .ti:last-child { border-bottom: none; }
-  @keyframes slideUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .ti:last-child { border-bottom:none; }
+  @keyframes slideUp { from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)} }
 
   .ti-chk {
-    width: 18px; height: 18px; min-width: 18px;
-    border: 1.5px solid var(--faint); border-radius: 50%;
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    margin-top: 2px; transition: all 0.2s;
+    width:18px; height:18px; min-width:18px;
+    border:1.5px solid var(--faint); border-radius:50%;
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+    margin-top:2px; transition:all 0.2s;
   }
-  .ti-chk:hover { border-color: var(--green); background: rgba(141,181,128,0.08); }
-  .ti-chk.on { border-color: var(--green); background: var(--green); }
-  .ti-chk.on::after { content: '✓'; color: var(--bg); font-size: 11px; font-weight: 500; }
+  .ti-chk:hover { border-color:var(--green); background:var(--green-lo); }
+  .ti-chk.on { border-color:var(--green); background:var(--green); }
+  .ti-chk.on::after { content:'✓'; color:var(--bg); font-size:11px; font-weight:500; }
 
   .ti-txt {
-    flex: 1; font-size: 13.5px; font-weight: 300; line-height: 1.55;
-    color: var(--text); background: none; border: none; outline: none;
-    font-family: 'Outfit', sans-serif; resize: none; overflow: hidden;
+    flex:1; font-size:13.5px; font-weight:300; line-height:1.55;
+    color:var(--text); background:none; border:none; outline:none;
+    font-family:'Outfit',sans-serif; resize:none; overflow:hidden;
   }
-  .ti-txt::placeholder { color: var(--faint); }
-  .ti.done .ti-txt { text-decoration: line-through; opacity: 0.25; }
+  .ti-txt::placeholder { color:var(--faint); }
+  .ti.done .ti-txt { text-decoration:line-through; opacity:0.25; }
 
   .ti-del {
-    opacity: 0; background: none; border: none;
-    color: var(--faint); cursor: pointer;
-    font-size: 15px; padding: 0 3px; margin-top: 1px; transition: all 0.2s;
+    opacity:0; background:none; border:none;
+    color:var(--faint); cursor:pointer;
+    font-size:15px; padding:0 3px; margin-top:1px; transition:all 0.2s;
   }
-  .ti:hover .ti-del { opacity: 0.4; }
-  .ti-del:hover { opacity: 1 !important; color: var(--red); }
+  .ti:hover .ti-del { opacity:0.4; }
+  .ti-del:hover { opacity:1 !important; color:var(--red); }
 
   .add-btn {
-    margin-top: 10px; background: none;
-    border: 1px dashed rgba(255,255,255,0.06);
-    border-radius: 9px; color: var(--faint); padding: 9px;
-    cursor: pointer; font-family: 'Outfit', sans-serif;
-    font-size: 12px; font-weight: 300; transition: all 0.2s; letter-spacing: 0.3px;
+    margin-top:10px; background:none;
+    border:1px dashed rgba(255,255,255,0.06);
+    border-radius:9px; color:var(--faint); padding:9px;
+    cursor:pointer; font-family:'Outfit',sans-serif;
+    font-size:12px; font-weight:300; transition:all 0.2s; letter-spacing:0.3px;
   }
-  .add-btn:hover { border-color: var(--accent-mid); color: var(--accent); background: var(--accent-lo); }
+  .add-btn:hover { border-color:var(--accent-mid); color:var(--accent); background:var(--accent-lo); }
+
+  /* ── POMODORO ── */
+  #pomo-card { flex: 0 0 auto; }
+
+  .pomo-display {
+    display: flex; align-items: center; justify-content: center;
+    gap: 16px; padding: 8px 0 12px;
+  }
+
+  .pomo-time {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 36px; font-weight: 300;
+    color: var(--text);
+    letter-spacing: 2px;
+    min-width: 130px;
+    text-align: center;
+  }
+
+  .pomo-phase {
+    font-size: 11px; font-weight: 400;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 6px;
+  }
+  .pomo-phase.work { color: var(--accent); background: var(--accent-lo); }
+  .pomo-phase.break { color: var(--green); background: var(--green-lo); }
+  .pomo-phase.idle { color: var(--dim); background: rgba(255,255,255,0.03); }
+
+  .pomo-progress {
+    width: 100%; height: 3px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .pomo-bar {
+    height: 100%; border-radius: 2px;
+    transition: width 1s linear, background 0.3s;
+    width: 0%;
+  }
+  .pomo-bar.work { background: var(--accent); }
+  .pomo-bar.break { background: var(--green); }
+
+  .pomo-controls {
+    display: flex; gap: 8px; align-items: center;
+  }
+
+  .pomo-btn {
+    background: var(--accent-lo); border: 1px solid var(--accent-mid);
+    border-radius: 8px; color: var(--accent); padding: 7px 16px;
+    font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 400;
+    cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px;
+  }
+  .pomo-btn:hover { background: rgba(201,168,124,0.15); }
+  .pomo-btn.stop { border-color: rgba(176,112,112,0.4); color: var(--red); background: var(--red-lo); }
+  .pomo-btn.stop:hover { background: rgba(176,112,112,0.15); }
+
+  .pomo-cfg {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .pomo-cfg label {
+    font-size: 11px; color: var(--faint); font-weight: 300;
+  }
+
+  .pomo-cfg input {
+    width: 42px; background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 5px 6px; color: var(--text); text-align: center;
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+    outline: none; transition: border-color 0.2s;
+  }
+  .pomo-cfg input:focus { border-color: var(--accent-mid); }
+
+  .pomo-cycles {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; color: var(--faint);
+    text-align: center; margin-top: 4px;
+  }
 
   /* ── SPOTIFY ── */
   #spotify-card { flex: 0 0 auto; }
@@ -320,53 +368,54 @@
   /* ── NOTES ── */
   #notes-card { flex: 1; min-height: 0; }
   #notes {
-    flex: 1; background: none; border: none; outline: none;
-    color: var(--text); font-family: 'Outfit', sans-serif;
-    font-size: 13.5px; font-weight: 300; line-height: 1.7;
-    resize: none; width: 100%;
+    flex:1; background:none; border:none; outline:none;
+    color:var(--text); font-family:'Outfit',sans-serif;
+    font-size:13.5px; font-weight:300; line-height:1.7;
+    resize:none; width:100%;
   }
-  #notes::placeholder { color: var(--faint); }
+  #notes::placeholder { color:var(--faint); }
 
   /* ═══ RESPONSIVE ═══ */
   @media (max-width: 860px) {
-    #content { grid-template-columns: 1fr; overflow-y: auto; }
-    #ui { padding: 16px; gap: 14px; }
-    .col { min-height: auto; }
-    #tasks-card { max-height: 45vh; }
-    .fd { width: 40px; height: 54px; }
-    .fd-val { font-size: 28px; }
-    .fc-sep { font-size: 32px; line-height: 54px; width: 14px; }
-    #topbar { top: 8px; right: 8px; }
+    #content { grid-template-columns:1fr; overflow-y:auto; }
+    #ui { padding:16px; gap:14px; }
+    .col { min-height:auto; }
+    #tasks-card { max-height:40vh; }
+    .fd { width:40px; height:54px; }
+    .fd-val { font-size:28px; }
+    .fc-sep { font-size:32px; line-height:54px; width:14px; }
+    #topbar { top:8px; right:8px; }
+    .pomo-time { font-size:28px; }
+    .pomo-controls { flex-wrap:wrap; }
   }
 </style>
 </head>
 <body>
 
-<!-- Video BG -->
-<div id="video-bg">
-  <div id="yt-player"></div>
-</div>
+<div id="video-bg"><div id="yt-player"></div></div>
 <div id="video-overlay"></div>
-
-<!-- Fallback -->
 <div id="fallback-bg"></div>
 <canvas id="rain-canvas"></canvas>
 
 <!-- Top bar -->
 <div id="topbar">
-  <button class="tb-btn active" id="tog-panels" onclick="togglePanels()">
-    <span id="tog-icon">◧</span> panels
-  </button>
-  <button class="tb-btn icon-only" id="settings-btn" onclick="toggleSettings()">⚙</button>
+  <button class="tb on" id="tog-panels" onclick="togglePanels()">◧ panels</button>
+  <div id="vol-wrap">
+    <button class="tb" id="vol-btn" onclick="toggleMute()">🔇 unmute</button>
+    <div id="vol-pop">
+      <input type="range" id="vol-slider" min="0" max="100" value="50" oninput="setVol(this.value)"/>
+      <div id="vol-lbl">50%</div>
+    </div>
+  </div>
+  <button class="tb icon" id="settings-btn" onclick="toggleSettings()">⚙</button>
 </div>
 
 <!-- Settings -->
 <div id="settings">
   <div class="sg">
     <div class="sg-label">YouTube Background</div>
-    <input class="sg-input" id="yt-input" placeholder="youtube URL or video ID" />
-    <div class="sg-hint">Paste any YouTube link for background visuals. Plays muted.<br><br>
-      <strong>Tip:</strong> If the video won't load, you may need to serve this file from a local server instead of opening directly. Run <code style="color:var(--accent);background:rgba(255,255,255,0.04);padding:2px 5px;border-radius:3px;">npx serve</code> or <code style="color:var(--accent);background:rgba(255,255,255,0.04);padding:2px 5px;border-radius:3px;">python -m http.server</code> in the folder and open <code style="color:var(--accent);background:rgba(255,255,255,0.04);padding:2px 5px;border-radius:3px;">localhost</code>.</div>
+    <input class="sg-input" id="yt-input" placeholder="youtube URL or video ID"/>
+    <div class="sg-hint">Paste any YouTube link. Use unmute button in toolbar for audio.</div>
     <div class="sg-row">
       <button class="sg-btn" onclick="applyYT()">apply</button>
       <button class="sg-btn-sec" onclick="useFallback()">rain fallback</button>
@@ -375,11 +424,9 @@
   </div>
   <div class="sg">
     <div class="sg-label">Spotify</div>
-    <input class="sg-input" id="sp-input" placeholder="spotify playlist, album, or track URL" />
-    <div class="sg-hint">Paste any Spotify link. Log into your account within the player for full playback.</div>
-    <div class="sg-row">
-      <button class="sg-btn" onclick="applySP()">apply</button>
-    </div>
+    <input class="sg-input" id="sp-input" placeholder="spotify playlist, album, or track URL"/>
+    <div class="sg-hint">Paste any Spotify link. Previews only unless logged into Premium in this browser.</div>
+    <div class="sg-row"><button class="sg-btn" onclick="applySP()">apply</button></div>
     <div class="sg-status" id="sp-status"></div>
   </div>
 </div>
@@ -393,6 +440,25 @@
         <div class="card-h"><span>tasks</span><span class="cnt" id="task-cnt"></span></div>
         <div class="task-scroll" id="task-list"></div>
         <button class="add-btn" onclick="addTask()">+ new task</button>
+      </div>
+      <div class="card" id="pomo-card">
+        <div class="card-h"><span>pomodoro</span></div>
+        <div class="pomo-display">
+          <span class="pomo-phase idle" id="pomo-phase">idle</span>
+          <span class="pomo-time" id="pomo-time">50:00</span>
+        </div>
+        <div class="pomo-progress"><div class="pomo-bar" id="pomo-bar"></div></div>
+        <div class="pomo-controls">
+          <button class="pomo-btn" id="pomo-start" onclick="pomoToggle()">start</button>
+          <button class="pomo-btn stop" id="pomo-reset" onclick="pomoReset()">reset</button>
+          <div class="pomo-cfg">
+            <label>work</label>
+            <input type="number" id="pomo-work" value="50" min="1" max="120" onchange="pomoCfgChange()"/>
+            <label>break</label>
+            <input type="number" id="pomo-break" value="10" min="1" max="60" onchange="pomoCfgChange()"/>
+          </div>
+        </div>
+        <div class="pomo-cycles" id="pomo-cycles"></div>
       </div>
     </div>
     <div class="col">
@@ -412,407 +478,382 @@
   </div>
 </div>
 
-<!-- YouTube IFrame API -->
 <script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
 // ═══════════════════════════════════
 // STORAGE
 // ═══════════════════════════════════
-const K = { YT: 'cz_yt', SP: 'cz_sp', TASKS: 'cz_tasks', NOTES: 'cz_notes', MODE: 'cz_mode', PANELS: 'cz_panels' };
+const K = { YT:'cz_yt', SP:'cz_sp', TASKS:'cz_tasks', NOTES:'cz_notes', MODE:'cz_mode', PANELS:'cz_panels', VOL:'cz_vol', MUTED:'cz_muted' };
 
 // ═══════════════════════════════════
 // SETTINGS
 // ═══════════════════════════════════
 function toggleSettings() { document.getElementById('settings').classList.toggle('open'); }
 document.addEventListener('click', e => {
-  const s = document.getElementById('settings');
-  const b = document.getElementById('settings-btn');
-  if (!s.contains(e.target) && !b.contains(e.target)) s.classList.remove('open');
+  const s=document.getElementById('settings'), b=document.getElementById('settings-btn');
+  const vp=document.getElementById('vol-pop'), vb=document.getElementById('vol-btn');
+  if (!s.contains(e.target)&&!b.contains(e.target)) s.classList.remove('open');
+  if (!vp.contains(e.target)&&!vb.contains(e.target)) vp.classList.remove('open');
 });
-
-function flash(id, msg, err) {
-  const el = document.getElementById(id);
-  el.textContent = msg;
-  el.className = 'sg-status show' + (err ? ' err' : '');
-  setTimeout(() => el.classList.remove('show'), 3000);
+function flash(id,msg,err) {
+  const el=document.getElementById(id); el.textContent=msg;
+  el.className='sg-status show'+(err?' err':'');
+  setTimeout(()=>el.classList.remove('show'),3000);
 }
 
 // ═══════════════════════════════════
-// PANEL TOGGLE
+// PANELS
 // ═══════════════════════════════════
-let panelsVisible = localStorage.getItem(K.PANELS) !== 'false';
-
-function togglePanels() {
-  panelsVisible = !panelsVisible;
-  localStorage.setItem(K.PANELS, panelsVisible);
-  applyPanelState();
+let panelsOn = localStorage.getItem(K.PANELS)!=='false';
+function togglePanels() { panelsOn=!panelsOn; localStorage.setItem(K.PANELS,panelsOn); applyPanels(); }
+function applyPanels() {
+  document.getElementById('content').classList.toggle('hidden',!panelsOn);
+  document.getElementById('clock-row').classList.toggle('centered',!panelsOn);
+  document.getElementById('tog-panels').classList.toggle('on',panelsOn);
 }
-
-function applyPanelState() {
-  const content = document.getElementById('content');
-  const clockRow = document.getElementById('clock-row');
-  const togBtn = document.getElementById('tog-panels');
-
-  if (panelsVisible) {
-    content.classList.remove('hidden');
-    clockRow.classList.remove('centered');
-    togBtn.classList.add('active');
-  } else {
-    content.classList.add('hidden');
-    clockRow.classList.add('centered');
-    togBtn.classList.remove('active');
-  }
-}
-
-applyPanelState();
-
-// Keyboard shortcut: Escape to toggle panels
+applyPanels();
 document.addEventListener('keydown', e => {
-  // Don't trigger if typing in an input
-  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-  if (e.key === 'Escape') {
-    togglePanels();
-  }
+  if (e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
+  if (e.key==='Escape') togglePanels();
 });
 
 // ═══════════════════════════════════
-// YOUTUBE (IFrame API)
+// YOUTUBE
 // ═══════════════════════════════════
-let ytPlayer = null;
-let ytReady = false;
-let pendingVideoId = null;
+let ytPlayer=null, ytReady=false, pendingId=null;
+let isMuted=localStorage.getItem(K.MUTED)!=='false';
+let volume=parseInt(localStorage.getItem(K.VOL))||50;
 
 function ytId(s) {
-  if (!s) return null;
-  s = s.trim();
+  if (!s) return null; s=s.trim();
   if (/^[a-zA-Z0-9_-]{11}$/.test(s)) return s;
-  const m = s.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|live\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-  return m ? m[1] : null;
+  const m=s.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|live\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  return m?m[1]:null;
 }
 
-// Called by YouTube IFrame API when ready
 window.onYouTubeIframeAPIReady = function() {
-  ytReady = true;
-  const mode = localStorage.getItem(K.MODE) || 'yt';
-  if (mode === 'fallback') {
-    useFallback();
-    return;
-  }
-  const id = pendingVideoId || localStorage.getItem(K.YT) || 'ysz5S6PUM-U';
-  createPlayer(id);
+  ytReady=true;
+  if ((localStorage.getItem(K.MODE)||'yt')==='fallback') { useFallback(); return; }
+  createPlayer(pendingId||localStorage.getItem(K.YT)||'ysz5S6PUM-U');
 };
 
-function createPlayer(videoId) {
-  if (!ytReady) {
-    pendingVideoId = videoId;
-    return;
-  }
-
-  document.getElementById('video-bg').style.display = '';
+function createPlayer(vid) {
+  if (!ytReady) { pendingId=vid; return; }
+  document.getElementById('video-bg').style.display='';
   document.getElementById('fallback-bg').classList.remove('active');
   document.getElementById('rain-canvas').classList.remove('active');
-
-  if (ytPlayer && ytPlayer.destroy) {
-    try { ytPlayer.destroy(); } catch(e) {}
+  if (ytPlayer&&ytPlayer.destroy) try{ytPlayer.destroy()}catch(e){}
+  if (!document.getElementById('yt-player')) {
+    const d=document.createElement('div'); d.id='yt-player';
+    document.getElementById('video-bg').appendChild(d);
   }
-
   ytPlayer = new YT.Player('yt-player', {
-    videoId: videoId,
-    playerVars: {
-      autoplay: 1,
-      mute: 1,
-      loop: 1,
-      playlist: videoId,
-      controls: 0,
-      showinfo: 0,
-      rel: 0,
-      modestbranding: 1,
-      iv_load_policy: 3,
-      disablekb: 1,
-      fs: 0,
-      playsinline: 1,
-      origin: window.location.origin,
-    },
+    videoId: vid,
+    playerVars: { autoplay:1, mute:1, loop:1, playlist:vid, controls:0, showinfo:0, rel:0, modestbranding:1, iv_load_policy:3, disablekb:1, fs:0, playsinline:1, origin:location.origin },
     events: {
-      onReady: function(e) {
-        e.target.mute();
+      onReady(e) {
         e.target.playVideo();
+        if (isMuted) e.target.mute(); else { e.target.unMute(); e.target.setVolume(volume); }
+        updateVolUI();
       },
-      onStateChange: function(e) {
-        // If ended, replay
-        if (e.data === YT.PlayerState.ENDED) {
-          e.target.playVideo();
-        }
-      },
-      onError: function(e) {
-        console.warn('YouTube player error:', e.data);
-        flash('yt-status', 'video failed to load — try rain fallback', true);
-      }
+      onStateChange(e) { if (e.data===YT.PlayerState.ENDED) e.target.playVideo(); },
+      onError(e) { flash('yt-status','video failed — try fallback',true); }
     }
   });
 }
 
 function applyYT() {
-  const id = ytId(document.getElementById('yt-input').value);
-  if (id) {
-    localStorage.setItem(K.YT, id);
-    localStorage.setItem(K.MODE, 'yt');
-    createPlayer(id);
-    flash('yt-status', 'applied ✓');
-  } else {
-    flash('yt-status', 'could not parse URL', true);
-  }
+  const id=ytId(document.getElementById('yt-input').value);
+  if (id) { localStorage.setItem(K.YT,id); localStorage.setItem(K.MODE,'yt'); createPlayer(id); flash('yt-status','applied ✓'); }
+  else flash('yt-status','could not parse URL',true);
 }
 
 function useFallback() {
-  localStorage.setItem(K.MODE, 'fallback');
-  document.getElementById('video-bg').style.display = 'none';
-  if (ytPlayer && ytPlayer.destroy) {
-    try { ytPlayer.destroy(); } catch(e) {}
-    // Recreate the div for potential future use
-    const div = document.createElement('div');
-    div.id = 'yt-player';
-    document.getElementById('video-bg').appendChild(div);
-  }
+  localStorage.setItem(K.MODE,'fallback');
+  document.getElementById('video-bg').style.display='none';
+  if (ytPlayer&&ytPlayer.destroy) { try{ytPlayer.destroy()}catch(e){} const d=document.createElement('div');d.id='yt-player';document.getElementById('video-bg').appendChild(d); }
   document.getElementById('fallback-bg').classList.add('active');
   document.getElementById('rain-canvas').classList.add('active');
-  initRain();
-  flash('yt-status', 'rain fallback active ✓');
+  initRain(); flash('yt-status','rain fallback ✓');
 }
 
-// Load saved input
-(function() {
-  const saved = localStorage.getItem(K.YT);
-  if (saved) document.getElementById('yt-input').value = saved;
-})();
+(function(){ const s=localStorage.getItem(K.YT); if(s)document.getElementById('yt-input').value=s; document.getElementById('vol-slider').value=volume; })();
+setTimeout(()=>{ if(!ytReady) useFallback(); },5000);
 
-// Fallback: if YT API never loads (blocked), auto-switch after timeout
-setTimeout(() => {
-  if (!ytReady) {
-    console.warn('YouTube API did not load. Using fallback.');
-    useFallback();
+// ═══════════════════════════════════
+// VOLUME
+// ═══════════════════════════════════
+function toggleMute() {
+  if (!ytPlayer||!ytPlayer.isMuted) return;
+  isMuted=!isMuted; localStorage.setItem(K.MUTED,isMuted);
+  if (isMuted) ytPlayer.mute(); else { ytPlayer.unMute(); ytPlayer.setVolume(volume); }
+  document.getElementById('vol-pop').classList.toggle('open',!isMuted);
+  updateVolUI();
+}
+function setVol(v) {
+  volume=parseInt(v); localStorage.setItem(K.VOL,volume);
+  document.getElementById('vol-lbl').textContent=volume+'%';
+  if (ytPlayer&&ytPlayer.setVolume) {
+    ytPlayer.setVolume(volume);
+    if (volume===0) { ytPlayer.mute(); isMuted=true; }
+    else if (isMuted) { ytPlayer.unMute(); isMuted=false; }
+    localStorage.setItem(K.MUTED,isMuted); updateVolUI();
   }
-}, 5000);
+}
+function updateVolUI() {
+  const b=document.getElementById('vol-btn');
+  if (isMuted) { b.textContent='🔇 unmute'; b.classList.remove('on'); }
+  else { b.textContent=`${volume>60?'🔊':volume>20?'🔉':'🔈'} ${volume}%`; b.classList.add('on'); }
+  document.getElementById('vol-lbl').textContent=volume+'%';
+}
+updateVolUI();
 
 // ═══════════════════════════════════
-// RAIN FALLBACK
+// RAIN
 // ═══════════════════════════════════
-const rc = document.getElementById('rain-canvas');
-const rx = rc.getContext('2d');
-let drops = [], rAF = null;
-
+const rc=document.getElementById('rain-canvas'), rx=rc.getContext('2d');
+let drops=[], rAF=null;
 function initRain() {
-  rc.width = window.innerWidth;
-  rc.height = window.innerHeight;
-  drops = [];
-  for (let i = 0; i < 300; i++) {
-    drops.push({
-      x: Math.random() * rc.width,
-      y: Math.random() * rc.height,
-      l: 8 + Math.random() * 18,
-      s: 3 + Math.random() * 5,
-      o: 0.03 + Math.random() * 0.1,
-    });
-  }
-  if (!rAF) loopRain();
+  rc.width=innerWidth; rc.height=innerHeight; drops=[];
+  for(let i=0;i<300;i++) drops.push({x:Math.random()*rc.width,y:Math.random()*rc.height,l:8+Math.random()*18,s:3+Math.random()*5,o:0.03+Math.random()*0.1});
+  if(!rAF) loopRain();
 }
-
 function loopRain() {
-  if (!rc.classList.contains('active')) { rAF = null; return; }
-  rx.clearRect(0, 0, rc.width, rc.height);
-  for (const d of drops) {
-    rx.strokeStyle = `rgba(180,200,230,${d.o})`;
-    rx.lineWidth = 1;
-    rx.beginPath();
-    rx.moveTo(d.x, d.y);
-    rx.lineTo(d.x - 0.5, d.y + d.l);
-    rx.stroke();
-    d.y += d.s;
-    if (d.y > rc.height) { d.y = -d.l; d.x = Math.random() * rc.width; }
-  }
-  rAF = requestAnimationFrame(loopRain);
+  if(!rc.classList.contains('active')){rAF=null;return;}
+  rx.clearRect(0,0,rc.width,rc.height);
+  for(const d of drops){rx.strokeStyle=`rgba(180,200,230,${d.o})`;rx.lineWidth=1;rx.beginPath();rx.moveTo(d.x,d.y);rx.lineTo(d.x-0.5,d.y+d.l);rx.stroke();d.y+=d.s;if(d.y>rc.height){d.y=-d.l;d.x=Math.random()*rc.width;}}
+  rAF=requestAnimationFrame(loopRain);
 }
-
-window.addEventListener('resize', () => {
-  if (rc.classList.contains('active')) { rc.width = innerWidth; rc.height = innerHeight; }
-});
+addEventListener('resize',()=>{if(rc.classList.contains('active')){rc.width=innerWidth;rc.height=innerHeight;}});
 
 // ═══════════════════════════════════
 // SPOTIFY
 // ═══════════════════════════════════
-function spUrl(s) {
-  if (!s) return null; s = s.trim();
-  const m = s.match(/open\.spotify\.com\/(playlist|album|track|artist|episode|show)\/([a-zA-Z0-9]+)/);
-  if (m) return `https://open.spotify.com/embed/${m[1]}/${m[2]}?utm_source=generator&theme=0`;
-  if (s.includes('/embed/')) return s;
-  return null;
-}
-
-function applySP() {
-  const u = spUrl(document.getElementById('sp-input').value);
-  if (u) {
-    localStorage.setItem(K.SP, document.getElementById('sp-input').value);
-    document.getElementById('sp-frame').src = u;
-    flash('sp-status', 'applied ✓');
-  } else {
-    flash('sp-status', 'invalid Spotify URL', true);
-  }
-}
-
-(function() {
-  const saved = localStorage.getItem(K.SP);
-  if (saved) {
-    const u = spUrl(saved);
-    if (u) document.getElementById('sp-frame').src = u;
-    document.getElementById('sp-input').value = saved;
-  }
-})();
+function spUrl(s){if(!s)return null;s=s.trim();const m=s.match(/open\.spotify\.com\/(playlist|album|track|artist|episode|show)\/([a-zA-Z0-9]+)/);if(m)return`https://open.spotify.com/embed/${m[1]}/${m[2]}?utm_source=generator&theme=0`;if(s.includes('/embed/'))return s;return null;}
+function applySP(){const u=spUrl(document.getElementById('sp-input').value);if(u){localStorage.setItem(K.SP,document.getElementById('sp-input').value);document.getElementById('sp-frame').src=u;flash('sp-status','applied ✓');}else flash('sp-status','invalid URL',true);}
+(function(){const s=localStorage.getItem(K.SP);if(s){const u=spUrl(s);if(u)document.getElementById('sp-frame').src=u;document.getElementById('sp-input').value=s;}})();
 
 // ═══════════════════════════════════
 // FLIP CLOCK
 // ═══════════════════════════════════
-const clockRow = document.getElementById('clock-row');
-let lastDigits = ['','','','','',''];
+const clockRow=document.getElementById('clock-row');
+let lastD=['','','','','',''];
 
-function now() {
-  const d = new Date();
-  let h = d.getHours();
-  const ap = h >= 12 ? 'PM' : 'AM';
-  h = h % 12 || 12;
-  const days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
-  const mos = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
-  return {
-    digits: [
-      ...String(h).padStart(2, '0').split(''),
-      ...String(d.getMinutes()).padStart(2, '0').split(''),
-      ...String(d.getSeconds()).padStart(2, '0').split(''),
-    ],
-    ap,
-    date: `${days[d.getDay()]}, ${mos[d.getMonth()]} ${d.getDate()}`
-  };
+function now(){
+  const d=new Date();let h=d.getHours();const ap=h>=12?'PM':'AM';h=h%12||12;
+  const days=['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+  const mos=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  return{d:[...String(h).padStart(2,'0'),...String(d.getMinutes()).padStart(2,'0'),...String(d.getSeconds()).padStart(2,'0')],ap,date:`${days[d.getDay()]}, ${mos[d.getMonth()]} ${d.getDate()}`};
 }
 
-function buildClock() {
-  const t = now();
-  lastDigits = [...t.digits];
-  let html = '<div class="fc-group">';
-  for (let i = 0; i < 6; i++) {
-    if (i === 2 || i === 4) html += '</div><div class="fc-sep">:</div><div class="fc-group">';
-    html += `
-      <div class="fd" data-i="${i}">
-        <div class="fd-half top"><div class="fd-val">${t.digits[i]}</div></div>
-        <div class="fd-half bot"><div class="fd-val">${t.digits[i]}</div></div>
-      </div>`;
+function buildClock(){
+  const t=now(); lastD=[...t.d];
+  let h='<div class="fc-group">';
+  for(let i=0;i<6;i++){
+    if(i===2||i===4) h+='</div><div class="fc-sep">:</div><div class="fc-group">';
+    h+=`<div class="fd" data-i="${i}"><div class="fd-half top"><div class="fd-val">${t.d[i]}</div></div><div class="fd-half bot"><div class="fd-val">${t.d[i]}</div></div></div>`;
   }
-  html += `</div>
-    <div class="fc-meta">
-      <div class="fc-ampm">${t.ap}</div>
-      <div class="fc-date">${t.date}</div>
-    </div>`;
-  clockRow.innerHTML = html;
+  h+=`</div><div class="fc-meta"><div class="fc-ampm">${t.ap}</div><div class="fc-date">${t.date}</div></div>`;
+  clockRow.innerHTML=h;
 }
 
-function flipDigit(idx, newVal) {
-  const el = clockRow.querySelector(`.fd[data-i="${idx}"]`);
-  if (!el) return;
-  const topV = el.querySelector('.fd-half.top .fd-val');
-  const botV = el.querySelector('.fd-half.bot .fd-val');
-  const oldVal = topV.textContent;
-  if (oldVal === newVal) return;
-
-  // Clean up old flaps
-  el.querySelectorAll('.fd-flap').forEach(f => f.remove());
-
-  // Top flap shows old, flips down
-  const tf = document.createElement('div');
-  tf.className = 'fd-flap flap-top';
-  tf.innerHTML = `<div class="fd-val">${oldVal}</div>`;
-
-  // Bottom flap shows new, flips up
-  const bf = document.createElement('div');
-  bf.className = 'fd-flap flap-bot';
-  bf.innerHTML = `<div class="fd-val">${newVal}</div>`;
-
-  // Reveal new value behind top flap
-  topV.textContent = newVal;
-
-  el.appendChild(tf);
-  el.appendChild(bf);
-
-  setTimeout(() => {
-    botV.textContent = newVal;
-    tf.remove();
-    bf.remove();
-  }, 650);
+function flipD(i,nv){
+  const el=clockRow.querySelector(`.fd[data-i="${i}"]`);if(!el)return;
+  const tv=el.querySelector('.fd-half.top .fd-val'), bv=el.querySelector('.fd-half.bot .fd-val');
+  if(tv.textContent===nv)return;
+  el.querySelectorAll('.fd-flap').forEach(f=>f.remove());
+  const tf=document.createElement('div');tf.className='fd-flap flap-top';tf.innerHTML=`<div class="fd-val">${tv.textContent}</div>`;
+  const bf=document.createElement('div');bf.className='fd-flap flap-bot';bf.innerHTML=`<div class="fd-val">${nv}</div>`;
+  tv.textContent=nv; el.appendChild(tf); el.appendChild(bf);
+  setTimeout(()=>{bv.textContent=nv;tf.remove();bf.remove();},650);
 }
 
-function tick() {
-  const t = now();
-  for (let i = 0; i < 6; i++) {
-    if (t.digits[i] !== lastDigits[i]) flipDigit(i, t.digits[i]);
+function tick(){
+  const t=now();
+  for(let i=0;i<6;i++) if(t.d[i]!==lastD[i]) flipD(i,t.d[i]);
+  lastD=[...t.d];
+  const a=clockRow.querySelector('.fc-ampm'),d=clockRow.querySelector('.fc-date');
+  if(a)a.textContent=t.ap; if(d)d.textContent=t.date;
+}
+buildClock(); setInterval(tick,1000);
+
+// ═══════════════════════════════════
+// POMODORO
+// ═══════════════════════════════════
+let pomoState = 'idle'; // idle, work, break
+let pomoSecs = 0;
+let pomoTotal = 0;
+let pomoInterval = null;
+let pomoCycles = 0;
+let pomoWorkMin = 50;
+let pomoBreakMin = 10;
+
+// Audio context for chime
+let audioCtx = null;
+
+function pomoChime() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // Play a pleasant two-tone chime
+    const playTone = (freq, start, dur) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime + start);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + start + dur);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(audioCtx.currentTime + start);
+      osc.stop(audioCtx.currentTime + start + dur);
+    };
+    playTone(523, 0, 0.3);     // C5
+    playTone(659, 0.15, 0.3);  // E5
+    playTone(784, 0.3, 0.5);   // G5
+
+    // Also try notification
+    if (Notification.permission === 'granted') {
+      new Notification(pomoState === 'work' ? '☕ Break time!' : '🔥 Back to work!', {
+        body: pomoState === 'work'
+          ? `Nice work! Take a ${pomoBreakMin} min break.`
+          : `Break's over. Focus for ${pomoWorkMin} min.`,
+        silent: true,
+      });
+    }
+  } catch(e) { console.warn('Audio chime failed:', e); }
+}
+
+function pomoUpdateUI() {
+  const mins = Math.floor(pomoSecs / 60);
+  const secs = pomoSecs % 60;
+  document.getElementById('pomo-time').textContent =
+    String(mins).padStart(2,'0') + ':' + String(secs).padStart(2,'0');
+
+  const phase = document.getElementById('pomo-phase');
+  phase.textContent = pomoState;
+  phase.className = 'pomo-phase ' + pomoState;
+
+  const bar = document.getElementById('pomo-bar');
+  if (pomoTotal > 0) {
+    const pct = ((pomoTotal - pomoSecs) / pomoTotal) * 100;
+    bar.style.width = pct + '%';
+  } else {
+    bar.style.width = '0%';
   }
-  lastDigits = [...t.digits];
-  const ampm = clockRow.querySelector('.fc-ampm');
-  const date = clockRow.querySelector('.fc-date');
-  if (ampm) ampm.textContent = t.ap;
-  if (date) date.textContent = t.date;
+  bar.className = 'pomo-bar ' + (pomoState === 'break' ? 'break' : 'work');
+
+  document.getElementById('pomo-start').textContent =
+    pomoState === 'idle' ? 'start' : (pomoInterval ? 'pause' : 'resume');
+
+  document.getElementById('pomo-cycles').textContent =
+    pomoCycles > 0 ? `${pomoCycles} cycle${pomoCycles > 1 ? 's' : ''} completed` : '';
+
+  // Update page title with timer when running
+  if (pomoState !== 'idle') {
+    document.title = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')} ${pomoState === 'work' ? '🔥' : '☕'} cozy`;
+  } else {
+    document.title = 'cozy';
+  }
 }
 
-buildClock();
-setInterval(tick, 1000);
+function pomoTick() {
+  pomoSecs--;
+  if (pomoSecs <= 0) {
+    pomoChime();
+    if (pomoState === 'work') {
+      // Switch to break
+      pomoState = 'break';
+      pomoSecs = pomoBreakMin * 60;
+      pomoTotal = pomoSecs;
+    } else {
+      // Switch to work
+      pomoCycles++;
+      pomoState = 'work';
+      pomoSecs = pomoWorkMin * 60;
+      pomoTotal = pomoSecs;
+    }
+  }
+  pomoUpdateUI();
+}
+
+function pomoToggle() {
+  // Request notification permission on first start
+  if (Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+
+  if (pomoState === 'idle') {
+    // Start fresh work session
+    pomoState = 'work';
+    pomoSecs = pomoWorkMin * 60;
+    pomoTotal = pomoSecs;
+    pomoInterval = setInterval(pomoTick, 1000);
+  } else if (pomoInterval) {
+    // Pause
+    clearInterval(pomoInterval);
+    pomoInterval = null;
+  } else {
+    // Resume
+    pomoInterval = setInterval(pomoTick, 1000);
+  }
+  pomoUpdateUI();
+}
+
+function pomoReset() {
+  clearInterval(pomoInterval);
+  pomoInterval = null;
+  pomoState = 'idle';
+  pomoSecs = pomoWorkMin * 60;
+  pomoTotal = 0;
+  pomoCycles = 0;
+  pomoUpdateUI();
+}
+
+function pomoCfgChange() {
+  const w = parseInt(document.getElementById('pomo-work').value) || 50;
+  const b = parseInt(document.getElementById('pomo-break').value) || 10;
+  pomoWorkMin = Math.max(1, Math.min(120, w));
+  pomoBreakMin = Math.max(1, Math.min(60, b));
+  if (pomoState === 'idle') {
+    pomoSecs = pomoWorkMin * 60;
+    pomoUpdateUI();
+  }
+}
+
+// Init pomodoro display
+pomoSecs = pomoWorkMin * 60;
+pomoUpdateUI();
 
 // ═══════════════════════════════════
 // TASKS
 // ═══════════════════════════════════
-let tasks = JSON.parse(localStorage.getItem(K.TASKS) || '[]');
-function saveT() { localStorage.setItem(K.TASKS, JSON.stringify(tasks)); }
-
-function renderT() {
-  const list = document.getElementById('task-list');
-  list.innerHTML = '';
-  tasks.forEach((t, i) => {
-    const row = document.createElement('div');
-    row.className = 'ti' + (t.done ? ' done' : '');
-
-    const chk = document.createElement('div');
-    chk.className = 'ti-chk' + (t.done ? ' on' : '');
-    chk.onclick = () => { tasks[i].done = !tasks[i].done; saveT(); renderT(); };
-
-    const txt = document.createElement('textarea');
-    txt.className = 'ti-txt'; txt.value = t.text;
-    txt.placeholder = 'what needs doing?'; txt.rows = 1;
-    txt.oninput = () => { tasks[i].text = txt.value; saveT(); aSize(txt); };
-    txt.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addTask(); } };
-
-    const del = document.createElement('button');
-    del.className = 'ti-del'; del.textContent = '×';
-    del.onclick = () => { tasks.splice(i, 1); saveT(); renderT(); };
-
-    row.append(chk, txt, del);
-    list.appendChild(row);
-    setTimeout(() => aSize(txt), 0);
+let tasks=JSON.parse(localStorage.getItem(K.TASKS)||'[]');
+function saveT(){localStorage.setItem(K.TASKS,JSON.stringify(tasks));}
+function renderT(){
+  const list=document.getElementById('task-list'); list.innerHTML='';
+  tasks.forEach((t,i)=>{
+    const row=document.createElement('div');row.className='ti'+(t.done?' done':'');
+    const chk=document.createElement('div');chk.className='ti-chk'+(t.done?' on':'');chk.onclick=()=>{tasks[i].done=!tasks[i].done;saveT();renderT();};
+    const txt=document.createElement('textarea');txt.className='ti-txt';txt.value=t.text;txt.placeholder='what needs doing?';txt.rows=1;
+    txt.oninput=()=>{tasks[i].text=txt.value;saveT();aSize(txt);};
+    txt.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();addTask();}};
+    const del=document.createElement('button');del.className='ti-del';del.textContent='×';del.onclick=()=>{tasks.splice(i,1);saveT();renderT();};
+    row.append(chk,txt,del);list.appendChild(row);setTimeout(()=>aSize(txt),0);
   });
-  const done = tasks.filter(t => t.done).length;
-  document.getElementById('task-cnt').textContent = tasks.length ? `${done}/${tasks.length}` : '';
+  const dn=tasks.filter(t=>t.done).length;
+  document.getElementById('task-cnt').textContent=tasks.length?`${dn}/${tasks.length}`:'';
 }
-
-function aSize(el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
-
-function addTask() {
-  tasks.push({ text: '', done: false }); saveT(); renderT();
-  const all = document.querySelectorAll('.ti-txt');
-  if (all.length) all[all.length - 1].focus();
-}
-
+function aSize(el){el.style.height='auto';el.style.height=el.scrollHeight+'px';}
+function addTask(){tasks.push({text:'',done:false});saveT();renderT();const a=document.querySelectorAll('.ti-txt');if(a.length)a[a.length-1].focus();}
 renderT();
 
 // ═══════════════════════════════════
 // NOTES
 // ═══════════════════════════════════
-const notesEl = document.getElementById('notes');
-notesEl.value = localStorage.getItem(K.NOTES) || '';
-notesEl.oninput = () => localStorage.setItem(K.NOTES, notesEl.value);
+const notesEl=document.getElementById('notes');
+notesEl.value=localStorage.getItem(K.NOTES)||'';
+notesEl.oninput=()=>localStorage.setItem(K.NOTES,notesEl.value);
 </script>
 </body>
 </html>
