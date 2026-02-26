@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>cozy</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Outfit:wght@200;300;400;500&family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0c0a0e;
+    --glass: rgba(12, 10, 14, 0.55);
+    --glass-solid: rgba(12, 10, 14, 0.72);
+    --border: rgba(255, 255, 255, 0.06);
+    --border-h: rgba(255, 255, 255, 0.1);
+    --text: #e2ddd5;
+    --dim: #7a7470;
+    --faint: #4a4643;
+    --accent: #c9a87c;
+    --accent-lo: rgba(201, 168, 124, 0.08);
+    --accent-mid: rgba(201, 168, 124, 0.4);
+    --green: #8db580;
+    --red: #b07070;
+    --r: 14px;
+  }
+
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    font-family: 'Outfit', sans-serif;
+    color: var(--text);
+    background: var(--bg);
+  }
+
+  /* ═══ VIDEO BG ═══ */
+  #video-bg {
+    position: fixed; inset: 0; z-index: 0;
+    overflow: hidden; background: #000;
+  }
+
+  #video-bg iframe, #yt-player {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 180vw; height: 180vh;
+    min-width: 180vw; min-height: 180vh;
+    transform: translate(-50%, -50%);
+    pointer-events: none; border: none;
+    object-fit: cover;
+  }
+
+  #video-overlay {
+    position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    background:
+      radial-gradient(ellipse at center, transparent 40%, rgba(12,10,14,0.5) 100%),
+      linear-gradient(to top, rgba(12,10,14,0.3) 0%, transparent 30%);
+  }
+
+  /* Fallback */
+  #fallback-bg {
+    position: fixed; inset: 0; z-index: 0; display: none;
+    background: linear-gradient(-45deg, #0c0a1a, #151025, #0a1520, #12081a);
+    background-size: 400% 400%;
+    animation: driftGrad 20s ease infinite;
+  }
+  #fallback-bg.active { display: block; }
+  @keyframes driftGrad { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+  #rain-canvas { position: fixed; inset: 0; z-index: 1; pointer-events: none; display: none; }
+  #rain-canvas.active { display: block; }
+
+  /* ═══ TOP BAR ═══ */
+  #topbar {
+    position: fixed; top: 12px; right: 12px; z-index: 200;
+    display: flex; gap: 6px;
+  }
+
+  .tb-btn {
+    background: var(--glass); border: 1px solid var(--border);
+    border-radius: 9px; color: var(--dim);
+    height: 34px; padding: 0 12px; cursor: pointer;
+    font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 300;
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    transition: all 0.25s; white-space: nowrap;
+    letter-spacing: 0.3px;
+  }
+  .tb-btn:hover { color: var(--accent); border-color: var(--border-h); }
+  .tb-btn.active { color: var(--accent); background: var(--accent-lo); border-color: var(--accent-mid); }
+  .tb-btn.icon-only { width: 34px; padding: 0; font-size: 15px; }
+
+  /* ═══ SETTINGS ═══ */
+  #settings {
+    position: fixed; top: 54px; right: 12px; z-index: 200;
+    background: var(--glass-solid); border: 1px solid var(--border);
+    border-radius: var(--r);
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    padding: 20px; width: 340px;
+    display: none;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+  }
+  #settings.open { display: block; animation: popIn 0.2s ease-out; }
+  @keyframes popIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .sg { margin-bottom: 16px; }
+  .sg:last-child { margin-bottom: 0; }
+  .sg-label { font-size: 11px; font-weight: 400; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dim); margin-bottom: 8px; }
+
+  .sg-input {
+    width: 100%; background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 12px; color: var(--text);
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+    outline: none; transition: border-color 0.2s;
+  }
+  .sg-input:focus { border-color: var(--accent-mid); }
+  .sg-input::placeholder { color: var(--faint); }
+
+  .sg-hint { font-size: 11px; color: var(--faint); margin-top: 6px; line-height: 1.5; }
+  .sg-row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+
+  .sg-btn {
+    background: var(--accent-lo); border: 1px solid var(--accent-mid);
+    border-radius: 8px; color: var(--accent); padding: 8px 16px;
+    font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 400;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .sg-btn:hover { background: rgba(201,168,124,0.15); }
+
+  .sg-btn-sec {
+    background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--dim); padding: 8px 16px;
+    font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 400;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .sg-btn-sec:hover { color: var(--text); border-color: var(--border-h); }
+
+  .sg-status { font-size: 11px; margin-top: 6px; color: var(--green); display: none; }
+  .sg-status.show { display: block; animation: popIn 0.2s ease-out; }
+  .sg-status.err { color: var(--red); }
+
+  /* ═══ MAIN LAYOUT ═══ */
+  #ui {
+    position: relative; z-index: 10;
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    padding: 28px 36px; gap: 20px;
+    transition: opacity 0.4s ease;
+  }
+
+  /* ── FLIP CLOCK ── */
+  #clock-row {
+    display: flex; justify-content: center; align-items: flex-end;
+    flex-shrink: 0; padding: 8px 0; gap: 4px;
+    transition: all 0.4s ease;
+  }
+
+  /* When panels hidden, center clock vertically */
+  #clock-row.centered {
+    flex: 1;
+    align-items: center;
+    padding: 0;
+  }
+
+  .fc-group { display: flex; gap: 4px; }
+
+  .fc-sep {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 42px; font-weight: 300;
+    color: var(--accent); opacity: 0.5;
+    width: 20px; text-align: center; line-height: 70px;
+    animation: blink 1s ease-in-out infinite;
+  }
+  @keyframes blink { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.12; } }
+
+  .fd {
+    width: 52px; height: 70px;
+    position: relative; perspective: 500px;
+  }
+
+  .fd-half {
+    position: absolute; left: 0; right: 0;
+    height: 50%; overflow: hidden;
+    background: var(--glass);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+  }
+  .fd-half.top { top: 0; border-radius: 10px 10px 0 0; border-bottom: 1px solid rgba(0,0,0,0.5); }
+  .fd-half.bot { bottom: 0; border-radius: 0 0 10px 10px; border-top: none; }
+
+  .fd-val {
+    position: absolute; left: 0; right: 0; height: 200%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 38px; font-weight: 300; color: var(--text);
+    pointer-events: none;
+  }
+  .fd-half.top .fd-val { top: 0; }
+  .fd-half.bot .fd-val { bottom: 0; }
+
+  .fd-flap {
+    position: absolute; left: 0; right: 0; height: 50%; overflow: hidden;
+    background: var(--glass);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border); z-index: 5;
+    backface-visibility: hidden;
+  }
+  .fd-flap.flap-top {
+    top: 0; border-radius: 10px 10px 0 0;
+    transform-origin: bottom center;
+    animation: flapDown 0.3s ease-in forwards;
+  }
+  .fd-flap.flap-bot {
+    bottom: 0; border-radius: 0 0 10px 10px;
+    transform-origin: top center; transform: rotateX(90deg);
+    animation: flapUp 0.3s 0.3s ease-out forwards;
+  }
+  .fd-flap.flap-top .fd-val { top: 0; }
+  .fd-flap.flap-bot .fd-val { bottom: 0; }
+  @keyframes flapDown { 0% { transform: rotateX(0); } 100% { transform: rotateX(-90deg); } }
+  @keyframes flapUp { 0% { transform: rotateX(90deg); } 100% { transform: rotateX(0); } }
+
+  .fc-meta {
+    display: flex; flex-direction: column;
+    margin-left: 14px; gap: 2px; padding-bottom: 6px;
+  }
+  .fc-ampm { font-size: 13px; font-weight: 200; letter-spacing: 3px; color: var(--accent); opacity: 0.7; }
+  .fc-date { font-family: 'Cormorant Garamond', serif; font-size: 13px; font-weight: 300; color: var(--dim); }
+
+  /* ── CONTENT ── */
+  #content {
+    flex: 1; display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px; min-height: 0;
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+
+  #content.hidden {
+    opacity: 0;
+    transform: translateY(12px);
+    pointer-events: none;
+    position: absolute;
+    visibility: hidden;
+  }
+
+  .card {
+    background: var(--glass); border: 1px solid var(--border);
+    border-radius: var(--r);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    padding: 22px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    display: flex; flex-direction: column;
+    overflow: hidden; transition: border-color 0.3s;
+  }
+  .card:hover { border-color: var(--border-h); }
+
+  .card-h {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px; font-weight: 400; color: var(--accent);
+    margin-bottom: 14px; letter-spacing: 0.5px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .card-h .cnt { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--faint); font-weight: 300; }
+
+  /* ── TASKS ── */
+  .col { display: flex; flex-direction: column; gap: 20px; min-height: 0; }
+  #tasks-card { flex: 1; min-height: 0; }
+
+  .task-scroll { flex: 1; overflow-y: auto; padding-right: 4px; }
+  .task-scroll::-webkit-scrollbar { width: 3px; }
+  .task-scroll::-webkit-scrollbar-track { background: transparent; }
+  .task-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 2px; }
+
+  .ti {
+    display: flex; align-items: flex-start; gap: 11px;
+    padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.02);
+    animation: slideUp 0.2s ease-out;
+  }
+  .ti:last-child { border-bottom: none; }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .ti-chk {
+    width: 18px; height: 18px; min-width: 18px;
+    border: 1.5px solid var(--faint); border-radius: 50%;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    margin-top: 2px; transition: all 0.2s;
+  }
+  .ti-chk:hover { border-color: var(--green); background: rgba(141,181,128,0.08); }
+  .ti-chk.on { border-color: var(--green); background: var(--green); }
+  .ti-chk.on::after { content: '✓'; color: var(--bg); font-size: 11px; font-weight: 500; }
+
+  .ti-txt {
+    flex: 1; font-size: 13.5px; font-weight: 300; line-height: 1.55;
+    color: var(--text); background: none; border: none; outline: none;
+    font-family: 'Outfit', sans-serif; resize: none; overflow: hidden;
+  }
+  .ti-txt::placeholder { color: var(--faint); }
+  .ti.done .ti-txt { text-decoration: line-through; opacity: 0.25; }
+
+  .ti-del {
+    opacity: 0; background: none; border: none;
+    color: var(--faint); cursor: pointer;
+    font-size: 15px; padding: 0 3px; margin-top: 1px; transition: all 0.2s;
+  }
+  .ti:hover .ti-del { opacity: 0.4; }
+  .ti-del:hover { opacity: 1 !important; color: var(--red); }
+
+  .add-btn {
+    margin-top: 10px; background: none;
+    border: 1px dashed rgba(255,255,255,0.06);
+    border-radius: 9px; color: var(--faint); padding: 9px;
+    cursor: pointer; font-family: 'Outfit', sans-serif;
+    font-size: 12px; font-weight: 300; transition: all 0.2s; letter-spacing: 0.3px;
+  }
+  .add-btn:hover { border-color: var(--accent-mid); color: var(--accent); background: var(--accent-lo); }
+
+  /* ── SPOTIFY ── */
+  #spotify-card { flex: 0 0 auto; }
+  #spotify-card iframe { border-radius: 10px; width: 100%; }
+
+  /* ── NOTES ── */
+  #notes-card { flex: 1; min-height: 0; }
+  #notes {
+    flex: 1; background: none; border: none; outline: none;
+    color: var(--text); font-family: 'Outfit', sans-serif;
+    font-size: 13.5px; font-weight: 300; line-height: 1.7;
+    resize: none; width: 100%;
+  }
+  #notes::placeholder { color: var(--faint); }
+
+  /* ═══ RESPONSIVE ═══ */
+  @media (max-width: 860px) {
+    #content { grid-template-columns: 1fr; overflow-y: auto; }
+    #ui { padding: 16px; gap: 14px; }
+    .col { min-height: auto; }
+    #tasks-card { max-height: 45vh; }
+    .fd { width: 40px; height: 54px; }
+    .fd-val { font-size: 28px; }
+    .fc-sep { font-size: 32px; line-height: 54px; width: 14px; }
+    #topbar { top: 8px; right: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Video BG -->
+<div id="video-bg">
+  <div id="yt-player"></div>
+</div>
+<div id="video-overlay"></div>
+
+<!-- Fallback -->
+<div id="fallback-bg"></div>
+<canvas id="rain-canvas"></canvas>
+
+<!-- Top bar -->
+<div id="topbar">
+  <button class="tb-btn active" id="tog-panels" onclick="togglePanels()">
+    <span id="tog-icon">◧</span> panels
+  </button>
+  <button class="tb-btn icon-only" id="settings-btn" onclick="toggleSettings()">⚙</button>
+</div>
+
+<!-- Settings -->
+<div id="settings">
+  <div class="sg">
+    <div class="sg-label">YouTube Background</div>
+    <input class="sg-input" id="yt-input" placeholder="youtube URL or video ID" />
+    <div class="sg-hint">Paste any YouTube link for background visuals. Plays muted.<br><br>
+      <strong>Tip:</strong> If the video won't load, you may need to serve this file from a local server instead of opening directly. Run <code style="color:var(--accent);background:rgba(255,255,255,0.04);padding:2px 5px;border-radius:3px;">npx serve</code> or <code style="color:var(--accent);background:rgba(255,255,255,0.04);padding:2px 5px;border-radius:3px;">python -m http.server</code> in the folder and open <code style="color:var(--accent);background:rgba(255,255,255,0.04);padding:2px 5px;border-radius:3px;">localhost</code>.</div>
+    <div class="sg-row">
+      <button class="sg-btn" onclick="applyYT()">apply</button>
+      <button class="sg-btn-sec" onclick="useFallback()">rain fallback</button>
+    </div>
+    <div class="sg-status" id="yt-status"></div>
+  </div>
+  <div class="sg">
+    <div class="sg-label">Spotify</div>
+    <input class="sg-input" id="sp-input" placeholder="spotify playlist, album, or track URL" />
+    <div class="sg-hint">Paste any Spotify link. Log into your account within the player for full playback.</div>
+    <div class="sg-row">
+      <button class="sg-btn" onclick="applySP()">apply</button>
+    </div>
+    <div class="sg-status" id="sp-status"></div>
+  </div>
+</div>
+
+<!-- UI -->
+<div id="ui">
+  <div id="clock-row"></div>
+  <div id="content">
+    <div class="col">
+      <div class="card" id="tasks-card">
+        <div class="card-h"><span>tasks</span><span class="cnt" id="task-cnt"></span></div>
+        <div class="task-scroll" id="task-list"></div>
+        <button class="add-btn" onclick="addTask()">+ new task</button>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card" id="spotify-card">
+        <div class="card-h">music</div>
+        <iframe id="sp-frame"
+          src="https://open.spotify.com/embed/playlist/37i9dQZF1DWZeKCadgRdKQ?utm_source=generator&theme=0"
+          height="152" frameBorder="0"
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+          loading="lazy"></iframe>
+      </div>
+      <div class="card" id="notes-card">
+        <div class="card-h">notes</div>
+        <textarea id="notes" placeholder="jot something down..."></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- YouTube IFrame API -->
+<script src="https://www.youtube.com/iframe_api"></script>
+
+<script>
+// ═══════════════════════════════════
+// STORAGE
+// ═══════════════════════════════════
+const K = { YT: 'cz_yt', SP: 'cz_sp', TASKS: 'cz_tasks', NOTES: 'cz_notes', MODE: 'cz_mode', PANELS: 'cz_panels' };
+
+// ═══════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════
+function toggleSettings() { document.getElementById('settings').classList.toggle('open'); }
+document.addEventListener('click', e => {
+  const s = document.getElementById('settings');
+  const b = document.getElementById('settings-btn');
+  if (!s.contains(e.target) && !b.contains(e.target)) s.classList.remove('open');
+});
+
+function flash(id, msg, err) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'sg-status show' + (err ? ' err' : '');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ═══════════════════════════════════
+// PANEL TOGGLE
+// ═══════════════════════════════════
+let panelsVisible = localStorage.getItem(K.PANELS) !== 'false';
+
+function togglePanels() {
+  panelsVisible = !panelsVisible;
+  localStorage.setItem(K.PANELS, panelsVisible);
+  applyPanelState();
+}
+
+function applyPanelState() {
+  const content = document.getElementById('content');
+  const clockRow = document.getElementById('clock-row');
+  const togBtn = document.getElementById('tog-panels');
+
+  if (panelsVisible) {
+    content.classList.remove('hidden');
+    clockRow.classList.remove('centered');
+    togBtn.classList.add('active');
+  } else {
+    content.classList.add('hidden');
+    clockRow.classList.add('centered');
+    togBtn.classList.remove('active');
+  }
+}
+
+applyPanelState();
+
+// Keyboard shortcut: Escape to toggle panels
+document.addEventListener('keydown', e => {
+  // Don't trigger if typing in an input
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'Escape') {
+    togglePanels();
+  }
+});
+
+// ═══════════════════════════════════
+// YOUTUBE (IFrame API)
+// ═══════════════════════════════════
+let ytPlayer = null;
+let ytReady = false;
+let pendingVideoId = null;
+
+function ytId(s) {
+  if (!s) return null;
+  s = s.trim();
+  if (/^[a-zA-Z0-9_-]{11}$/.test(s)) return s;
+  const m = s.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|live\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
+// Called by YouTube IFrame API when ready
+window.onYouTubeIframeAPIReady = function() {
+  ytReady = true;
+  const mode = localStorage.getItem(K.MODE) || 'yt';
+  if (mode === 'fallback') {
+    useFallback();
+    return;
+  }
+  const id = pendingVideoId || localStorage.getItem(K.YT) || 'ysz5S6PUM-U';
+  createPlayer(id);
+};
+
+function createPlayer(videoId) {
+  if (!ytReady) {
+    pendingVideoId = videoId;
+    return;
+  }
+
+  document.getElementById('video-bg').style.display = '';
+  document.getElementById('fallback-bg').classList.remove('active');
+  document.getElementById('rain-canvas').classList.remove('active');
+
+  if (ytPlayer && ytPlayer.destroy) {
+    try { ytPlayer.destroy(); } catch(e) {}
+  }
+
+  ytPlayer = new YT.Player('yt-player', {
+    videoId: videoId,
+    playerVars: {
+      autoplay: 1,
+      mute: 1,
+      loop: 1,
+      playlist: videoId,
+      controls: 0,
+      showinfo: 0,
+      rel: 0,
+      modestbranding: 1,
+      iv_load_policy: 3,
+      disablekb: 1,
+      fs: 0,
+      playsinline: 1,
+      origin: window.location.origin,
+    },
+    events: {
+      onReady: function(e) {
+        e.target.mute();
+        e.target.playVideo();
+      },
+      onStateChange: function(e) {
+        // If ended, replay
+        if (e.data === YT.PlayerState.ENDED) {
+          e.target.playVideo();
+        }
+      },
+      onError: function(e) {
+        console.warn('YouTube player error:', e.data);
+        flash('yt-status', 'video failed to load — try rain fallback', true);
+      }
+    }
+  });
+}
+
+function applyYT() {
+  const id = ytId(document.getElementById('yt-input').value);
+  if (id) {
+    localStorage.setItem(K.YT, id);
+    localStorage.setItem(K.MODE, 'yt');
+    createPlayer(id);
+    flash('yt-status', 'applied ✓');
+  } else {
+    flash('yt-status', 'could not parse URL', true);
+  }
+}
+
+function useFallback() {
+  localStorage.setItem(K.MODE, 'fallback');
+  document.getElementById('video-bg').style.display = 'none';
+  if (ytPlayer && ytPlayer.destroy) {
+    try { ytPlayer.destroy(); } catch(e) {}
+    // Recreate the div for potential future use
+    const div = document.createElement('div');
+    div.id = 'yt-player';
+    document.getElementById('video-bg').appendChild(div);
+  }
+  document.getElementById('fallback-bg').classList.add('active');
+  document.getElementById('rain-canvas').classList.add('active');
+  initRain();
+  flash('yt-status', 'rain fallback active ✓');
+}
+
+// Load saved input
+(function() {
+  const saved = localStorage.getItem(K.YT);
+  if (saved) document.getElementById('yt-input').value = saved;
+})();
+
+// Fallback: if YT API never loads (blocked), auto-switch after timeout
+setTimeout(() => {
+  if (!ytReady) {
+    console.warn('YouTube API did not load. Using fallback.');
+    useFallback();
+  }
+}, 5000);
+
+// ═══════════════════════════════════
+// RAIN FALLBACK
+// ═══════════════════════════════════
+const rc = document.getElementById('rain-canvas');
+const rx = rc.getContext('2d');
+let drops = [], rAF = null;
+
+function initRain() {
+  rc.width = window.innerWidth;
+  rc.height = window.innerHeight;
+  drops = [];
+  for (let i = 0; i < 300; i++) {
+    drops.push({
+      x: Math.random() * rc.width,
+      y: Math.random() * rc.height,
+      l: 8 + Math.random() * 18,
+      s: 3 + Math.random() * 5,
+      o: 0.03 + Math.random() * 0.1,
+    });
+  }
+  if (!rAF) loopRain();
+}
+
+function loopRain() {
+  if (!rc.classList.contains('active')) { rAF = null; return; }
+  rx.clearRect(0, 0, rc.width, rc.height);
+  for (const d of drops) {
+    rx.strokeStyle = `rgba(180,200,230,${d.o})`;
+    rx.lineWidth = 1;
+    rx.beginPath();
+    rx.moveTo(d.x, d.y);
+    rx.lineTo(d.x - 0.5, d.y + d.l);
+    rx.stroke();
+    d.y += d.s;
+    if (d.y > rc.height) { d.y = -d.l; d.x = Math.random() * rc.width; }
+  }
+  rAF = requestAnimationFrame(loopRain);
+}
+
+window.addEventListener('resize', () => {
+  if (rc.classList.contains('active')) { rc.width = innerWidth; rc.height = innerHeight; }
+});
+
+// ═══════════════════════════════════
+// SPOTIFY
+// ═══════════════════════════════════
+function spUrl(s) {
+  if (!s) return null; s = s.trim();
+  const m = s.match(/open\.spotify\.com\/(playlist|album|track|artist|episode|show)\/([a-zA-Z0-9]+)/);
+  if (m) return `https://open.spotify.com/embed/${m[1]}/${m[2]}?utm_source=generator&theme=0`;
+  if (s.includes('/embed/')) return s;
+  return null;
+}
+
+function applySP() {
+  const u = spUrl(document.getElementById('sp-input').value);
+  if (u) {
+    localStorage.setItem(K.SP, document.getElementById('sp-input').value);
+    document.getElementById('sp-frame').src = u;
+    flash('sp-status', 'applied ✓');
+  } else {
+    flash('sp-status', 'invalid Spotify URL', true);
+  }
+}
+
+(function() {
+  const saved = localStorage.getItem(K.SP);
+  if (saved) {
+    const u = spUrl(saved);
+    if (u) document.getElementById('sp-frame').src = u;
+    document.getElementById('sp-input').value = saved;
+  }
+})();
+
+// ═══════════════════════════════════
+// FLIP CLOCK
+// ═══════════════════════════════════
+const clockRow = document.getElementById('clock-row');
+let lastDigits = ['','','','','',''];
+
+function now() {
+  const d = new Date();
+  let h = d.getHours();
+  const ap = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  const days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+  const mos = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  return {
+    digits: [
+      ...String(h).padStart(2, '0').split(''),
+      ...String(d.getMinutes()).padStart(2, '0').split(''),
+      ...String(d.getSeconds()).padStart(2, '0').split(''),
+    ],
+    ap,
+    date: `${days[d.getDay()]}, ${mos[d.getMonth()]} ${d.getDate()}`
+  };
+}
+
+function buildClock() {
+  const t = now();
+  lastDigits = [...t.digits];
+  let html = '<div class="fc-group">';
+  for (let i = 0; i < 6; i++) {
+    if (i === 2 || i === 4) html += '</div><div class="fc-sep">:</div><div class="fc-group">';
+    html += `
+      <div class="fd" data-i="${i}">
+        <div class="fd-half top"><div class="fd-val">${t.digits[i]}</div></div>
+        <div class="fd-half bot"><div class="fd-val">${t.digits[i]}</div></div>
+      </div>`;
+  }
+  html += `</div>
+    <div class="fc-meta">
+      <div class="fc-ampm">${t.ap}</div>
+      <div class="fc-date">${t.date}</div>
+    </div>`;
+  clockRow.innerHTML = html;
+}
+
+function flipDigit(idx, newVal) {
+  const el = clockRow.querySelector(`.fd[data-i="${idx}"]`);
+  if (!el) return;
+  const topV = el.querySelector('.fd-half.top .fd-val');
+  const botV = el.querySelector('.fd-half.bot .fd-val');
+  const oldVal = topV.textContent;
+  if (oldVal === newVal) return;
+
+  // Clean up old flaps
+  el.querySelectorAll('.fd-flap').forEach(f => f.remove());
+
+  // Top flap shows old, flips down
+  const tf = document.createElement('div');
+  tf.className = 'fd-flap flap-top';
+  tf.innerHTML = `<div class="fd-val">${oldVal}</div>`;
+
+  // Bottom flap shows new, flips up
+  const bf = document.createElement('div');
+  bf.className = 'fd-flap flap-bot';
+  bf.innerHTML = `<div class="fd-val">${newVal}</div>`;
+
+  // Reveal new value behind top flap
+  topV.textContent = newVal;
+
+  el.appendChild(tf);
+  el.appendChild(bf);
+
+  setTimeout(() => {
+    botV.textContent = newVal;
+    tf.remove();
+    bf.remove();
+  }, 650);
+}
+
+function tick() {
+  const t = now();
+  for (let i = 0; i < 6; i++) {
+    if (t.digits[i] !== lastDigits[i]) flipDigit(i, t.digits[i]);
+  }
+  lastDigits = [...t.digits];
+  const ampm = clockRow.querySelector('.fc-ampm');
+  const date = clockRow.querySelector('.fc-date');
+  if (ampm) ampm.textContent = t.ap;
+  if (date) date.textContent = t.date;
+}
+
+buildClock();
+setInterval(tick, 1000);
+
+// ═══════════════════════════════════
+// TASKS
+// ═══════════════════════════════════
+let tasks = JSON.parse(localStorage.getItem(K.TASKS) || '[]');
+function saveT() { localStorage.setItem(K.TASKS, JSON.stringify(tasks)); }
+
+function renderT() {
+  const list = document.getElementById('task-list');
+  list.innerHTML = '';
+  tasks.forEach((t, i) => {
+    const row = document.createElement('div');
+    row.className = 'ti' + (t.done ? ' done' : '');
+
+    const chk = document.createElement('div');
+    chk.className = 'ti-chk' + (t.done ? ' on' : '');
+    chk.onclick = () => { tasks[i].done = !tasks[i].done; saveT(); renderT(); };
+
+    const txt = document.createElement('textarea');
+    txt.className = 'ti-txt'; txt.value = t.text;
+    txt.placeholder = 'what needs doing?'; txt.rows = 1;
+    txt.oninput = () => { tasks[i].text = txt.value; saveT(); aSize(txt); };
+    txt.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addTask(); } };
+
+    const del = document.createElement('button');
+    del.className = 'ti-del'; del.textContent = '×';
+    del.onclick = () => { tasks.splice(i, 1); saveT(); renderT(); };
+
+    row.append(chk, txt, del);
+    list.appendChild(row);
+    setTimeout(() => aSize(txt), 0);
+  });
+  const done = tasks.filter(t => t.done).length;
+  document.getElementById('task-cnt').textContent = tasks.length ? `${done}/${tasks.length}` : '';
+}
+
+function aSize(el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
+
+function addTask() {
+  tasks.push({ text: '', done: false }); saveT(); renderT();
+  const all = document.querySelectorAll('.ti-txt');
+  if (all.length) all[all.length - 1].focus();
+}
+
+renderT();
+
+// ═══════════════════════════════════
+// NOTES
+// ═══════════════════════════════════
+const notesEl = document.getElementById('notes');
+notesEl.value = localStorage.getItem(K.NOTES) || '';
+notesEl.oninput = () => localStorage.setItem(K.NOTES, notesEl.value);
+</script>
+</body>
+</html>
