@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>cozy — planner</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Outfit:wght@200;300;400;500&family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+
+  :root {
+    --bg:#0c0a0e;
+    --glass:rgba(12,10,14,0.55);
+    --glass-solid:rgba(12,10,14,0.72);
+    --border:rgba(255,255,255,0.06);
+    --border-h:rgba(255,255,255,0.1);
+    --text:#e2ddd5;
+    --dim:#7a7470;
+    --faint:#4a4643;
+    --accent:#c9a87c;
+    --accent-lo:rgba(201,168,124,0.08);
+    --accent-mid:rgba(201,168,124,0.4);
+    --green:#8db580;
+    --green-lo:rgba(141,181,128,0.08);
+    --red:#b07070;
+    --red-lo:rgba(176,112,112,0.08);
+    --blue:#7a9ec9;
+    --blue-lo:rgba(122,158,201,0.08);
+    --purple:#a88bc7;
+    --purple-lo:rgba(168,139,199,0.08);
+    --orange:#c9a06a;
+    --orange-lo:rgba(201,160,106,0.08);
+    --pink:#c27a95;
+    --pink-lo:rgba(194,122,149,0.08);
+    --r:14px;
+  }
+
+  html,body{width:100%;height:100%;font-family:'Outfit',sans-serif;color:var(--text);background:var(--bg);}
+
+  /* ═══ BG ═══ */
+  #bg {
+    position:fixed;inset:0;z-index:0;
+    background:linear-gradient(-45deg,#0c0a1a,#151025,#0a1520,#12081a);
+    background-size:400% 400%;
+    animation:drift 20s ease infinite;
+  }
+  @keyframes drift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+
+  #rain{position:fixed;inset:0;z-index:1;pointer-events:none;}
+
+  /* ═══ TOP BAR ═══ */
+  #topbar{
+    position:fixed;top:0;left:0;right:0;z-index:100;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 28px;
+    background:linear-gradient(to bottom,rgba(12,10,14,0.7),transparent);
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  }
+
+  .top-left{display:flex;align-items:center;gap:16px;}
+
+  .back-link{
+    font-family:'Outfit',sans-serif;font-size:13px;font-weight:300;
+    color:var(--dim);text-decoration:none;
+    display:flex;align-items:center;gap:6px;
+    transition:color 0.2s;
+  }
+  .back-link:hover{color:var(--accent);}
+
+  .page-title{
+    font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;
+    color:var(--accent);letter-spacing:0.5px;
+  }
+
+  .top-right{display:flex;gap:8px;}
+
+  .tb{
+    background:var(--glass);border:1px solid var(--border);
+    border-radius:9px;color:var(--dim);
+    height:34px;padding:0 14px;cursor:pointer;
+    font-family:'Outfit',sans-serif;font-size:12px;font-weight:300;
+    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    display:flex;align-items:center;gap:6px;
+    transition:all 0.25s;white-space:nowrap;letter-spacing:0.3px;
+  }
+  .tb:hover{color:var(--accent);border-color:var(--border-h);}
+  .tb.on{color:var(--accent);background:var(--accent-lo);border-color:var(--accent-mid);}
+
+  /* ═══ MAIN ═══ */
+  #main{
+    position:relative;z-index:10;
+    max-width:760px;margin:0 auto;
+    padding:72px 24px 40px;
+  }
+
+  /* ═══ ADD FORM ═══ */
+  #add-bar{
+    background:var(--glass);border:1px solid var(--border);
+    border-radius:var(--r);
+    backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    padding:18px 20px;margin-bottom:28px;
+    box-shadow:0 8px 32px rgba(0,0,0,0.25);
+  }
+
+  .add-row{display:flex;gap:10px;margin-bottom:12px;}
+  .add-row:last-child{margin-bottom:0;}
+
+  .add-input{
+    flex:1;background:rgba(255,255,255,0.04);
+    border:1px solid var(--border);border-radius:8px;
+    padding:10px 12px;color:var(--text);
+    font-family:'Outfit',sans-serif;font-size:13px;font-weight:300;
+    outline:none;transition:border-color 0.2s;
+  }
+  .add-input:focus{border-color:var(--accent-mid);}
+  .add-input::placeholder{color:var(--faint);}
+
+  .add-input[type="date"]{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;
+    color-scheme:dark;
+  }
+
+  .add-select{
+    background:rgba(255,255,255,0.04);
+    border:1px solid var(--border);border-radius:8px;
+    padding:10px 12px;color:var(--text);
+    font-family:'Outfit',sans-serif;font-size:12px;font-weight:300;
+    outline:none;cursor:pointer;transition:border-color 0.2s;
+    color-scheme:dark;
+  }
+  .add-select:focus{border-color:var(--accent-mid);}
+
+  .add-btn{
+    background:var(--accent-lo);border:1px solid var(--accent-mid);
+    border-radius:8px;color:var(--accent);padding:10px 20px;
+    font-family:'Outfit',sans-serif;font-size:13px;font-weight:400;
+    cursor:pointer;transition:all 0.2s;white-space:nowrap;
+  }
+  .add-btn:hover{background:rgba(201,168,124,0.15);}
+
+  /* ═══ FILTERS ═══ */
+  #filters{
+    display:flex;gap:6px;margin-bottom:24px;flex-wrap:wrap;
+  }
+
+  .filter-chip{
+    background:rgba(255,255,255,0.03);border:1px solid var(--border);
+    border-radius:20px;padding:5px 14px;
+    font-size:11px;font-weight:300;letter-spacing:0.5px;
+    color:var(--dim);cursor:pointer;transition:all 0.2s;
+  }
+  .filter-chip:hover{border-color:var(--border-h);color:var(--text);}
+  .filter-chip.on{color:var(--accent);background:var(--accent-lo);border-color:var(--accent-mid);}
+
+  /* ═══ MONTH GROUPS ═══ */
+  .month-group{margin-bottom:32px;}
+
+  .month-label{
+    font-family:'Cormorant Garamond',serif;
+    font-size:20px;font-weight:400;
+    color:var(--accent);opacity:0.7;
+    margin-bottom:12px;padding-left:2px;
+    letter-spacing:0.5px;
+  }
+
+  .month-label .year{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;color:var(--faint);
+    margin-left:8px;font-weight:300;
+  }
+
+  /* ═══ PLANNER ITEM ═══ */
+  .pi{
+    display:flex;align-items:flex-start;gap:12px;
+    padding:14px 16px;
+    background:var(--glass);border:1px solid var(--border);
+    border-radius:12px;margin-bottom:8px;
+    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    transition:all 0.25s;
+    animation:slideIn 0.2s ease-out;
+  }
+  .pi:hover{border-color:var(--border-h);}
+  @keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+  .pi.done{opacity:0.35;}
+  .pi.done .pi-title{text-decoration:line-through;}
+
+  /* Priority stripe */
+  .pi.pri-high{border-left:3px solid var(--red);}
+  .pi.pri-med{border-left:3px solid var(--orange);}
+  .pi.pri-low{border-left:3px solid var(--faint);}
+
+  .pi-chk{
+    width:18px;height:18px;min-width:18px;
+    border:1.5px solid var(--faint);border-radius:50%;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+    margin-top:2px;transition:all 0.2s;
+  }
+  .pi-chk:hover{border-color:var(--green);background:var(--green-lo);}
+  .pi-chk.on{border-color:var(--green);background:var(--green);}
+  .pi-chk.on::after{content:'✓';color:var(--bg);font-size:11px;font-weight:500;}
+
+  .pi-body{flex:1;min-width:0;}
+
+  .pi-top{display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;}
+
+  .pi-title{
+    font-size:14px;font-weight:400;color:var(--text);
+    line-height:1.4;
+  }
+
+  .pi-cat{
+    font-size:10px;font-weight:400;letter-spacing:1px;
+    text-transform:uppercase;padding:2px 8px;border-radius:4px;
+    white-space:nowrap;
+  }
+  .pi-cat.exam{color:var(--red);background:var(--red-lo);}
+  .pi-cat.assignment{color:var(--blue);background:var(--blue-lo);}
+  .pi-cat.meeting{color:var(--purple);background:var(--purple-lo);}
+  .pi-cat.deadline{color:var(--orange);background:var(--orange-lo);}
+  .pi-cat.personal{color:var(--pink);background:var(--pink-lo);}
+  .pi-cat.other{color:var(--dim);background:rgba(255,255,255,0.04);}
+
+  .pi-meta{
+    display:flex;align-items:center;gap:10px;
+  }
+
+  .pi-date{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;color:var(--dim);font-weight:300;
+  }
+
+  .pi-note{
+    font-size:12px;color:var(--faint);font-weight:300;
+    font-style:italic;
+  }
+
+  .pi-pri{
+    font-size:10px;letter-spacing:0.5px;color:var(--faint);
+    text-transform:uppercase;
+  }
+  .pi-pri.high{color:var(--red);}
+  .pi-pri.med{color:var(--orange);}
+
+  .pi-del{
+    opacity:0.15;background:none;border:none;
+    color:var(--faint);cursor:pointer;
+    font-size:16px;padding:0 4px;margin-top:1px;transition:all 0.2s;
+    align-self:flex-start;
+  }
+  .pi:hover .pi-del{opacity:0.4;}
+  .pi-del:hover{opacity:1 !important;color:var(--red);}
+
+  /* Due soon / overdue highlights */
+  .pi.overdue{background:rgba(176,112,112,0.04);}
+  .pi.due-soon .pi-date{color:var(--orange);}
+
+  /* ═══ EMPTY STATE ═══ */
+  .empty{
+    text-align:center;padding:48px 0;
+    color:var(--faint);font-size:14px;font-weight:300;
+    letter-spacing:0.3px;
+  }
+
+  /* ═══ RESPONSIVE ═══ */
+  @media(max-width:600px){
+    #main{padding:64px 14px 32px;}
+    .add-row{flex-wrap:wrap;}
+    .add-input,.add-select,.add-btn{min-width:0;}
+    #topbar{padding:12px 16px;}
+  }
+</style>
+</head>
+<body>
+
+<div id="bg"></div>
+<canvas id="rain"></canvas>
+
+<div id="topbar">
+  <div class="top-left">
+    <a href="index.html" class="back-link">← dashboard</a>
+    <div class="page-title">planner</div>
+  </div>
+  <div class="top-right">
+    <button class="tb" id="hide-done-btn" onclick="toggleHideDone()">hide done</button>
+  </div>
+</div>
+
+<div id="main">
+  <!-- Add form -->
+  <div id="add-bar">
+    <div class="add-row">
+      <input class="add-input" id="add-title" placeholder="what's coming up?" autofocus/>
+      <input class="add-input" id="add-date" type="date"/>
+    </div>
+    <div class="add-row">
+      <select class="add-select" id="add-cat">
+        <option value="exam">exam</option>
+        <option value="assignment" selected>assignment</option>
+        <option value="meeting">meeting</option>
+        <option value="deadline">deadline</option>
+        <option value="personal">personal</option>
+        <option value="other">other</option>
+      </select>
+      <select class="add-select" id="add-pri">
+        <option value="high">high priority</option>
+        <option value="med" selected>medium</option>
+        <option value="low">low priority</option>
+      </select>
+      <input class="add-input" id="add-note" placeholder="note (optional)" style="flex:2"/>
+      <button class="add-btn" onclick="addItem()">+ add</button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div id="filters">
+    <button class="filter-chip on" data-f="all" onclick="setFilter('all')">all</button>
+    <button class="filter-chip" data-f="exam" onclick="setFilter('exam')">exam</button>
+    <button class="filter-chip" data-f="assignment" onclick="setFilter('assignment')">assignment</button>
+    <button class="filter-chip" data-f="meeting" onclick="setFilter('meeting')">meeting</button>
+    <button class="filter-chip" data-f="deadline" onclick="setFilter('deadline')">deadline</button>
+    <button class="filter-chip" data-f="personal" onclick="setFilter('personal')">personal</button>
+    <button class="filter-chip" data-f="other" onclick="setFilter('other')">other</button>
+  </div>
+
+  <!-- Items rendered here -->
+  <div id="planner-list"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════
+// STORAGE
+// ═══════════════════════════════════
+const PLAN_KEY = 'cz_planner';
+let items = JSON.parse(localStorage.getItem(PLAN_KEY) || '[]');
+let filter = 'all';
+let hideDone = false;
+
+function save() { localStorage.setItem(PLAN_KEY, JSON.stringify(items)); }
+
+// ═══════════════════════════════════
+// RAIN (subtle background)
+// ═══════════════════════════════════
+const rc = document.getElementById('rain');
+const rx = rc.getContext('2d');
+let drops = [];
+
+function initRain() {
+  rc.width = innerWidth; rc.height = innerHeight;
+  drops = [];
+  for (let i = 0; i < 150; i++) {
+    drops.push({
+      x: Math.random() * rc.width,
+      y: Math.random() * rc.height,
+      l: 6 + Math.random() * 14,
+      s: 2 + Math.random() * 3,
+      o: 0.02 + Math.random() * 0.06,
+    });
+  }
+}
+
+function loopRain() {
+  rx.clearRect(0, 0, rc.width, rc.height);
+  for (const d of drops) {
+    rx.strokeStyle = `rgba(180,200,230,${d.o})`;
+    rx.lineWidth = 1;
+    rx.beginPath();
+    rx.moveTo(d.x, d.y);
+    rx.lineTo(d.x - 0.3, d.y + d.l);
+    rx.stroke();
+    d.y += d.s;
+    if (d.y > rc.height) { d.y = -d.l; d.x = Math.random() * rc.width; }
+  }
+  requestAnimationFrame(loopRain);
+}
+
+initRain();
+loopRain();
+addEventListener('resize', () => { rc.width = innerWidth; rc.height = innerHeight; });
+
+// ═══════════════════════════════════
+// ADD ITEM
+// ═══════════════════════════════════
+// Default date to today
+document.getElementById('add-date').valueAsDate = new Date();
+
+// Enter key to add
+document.getElementById('add-title').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addItem();
+});
+document.getElementById('add-note').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addItem();
+});
+
+function addItem() {
+  const title = document.getElementById('add-title').value.trim();
+  if (!title) { document.getElementById('add-title').focus(); return; }
+
+  const date = document.getElementById('add-date').value;
+  const cat = document.getElementById('add-cat').value;
+  const pri = document.getElementById('add-pri').value;
+  const note = document.getElementById('add-note').value.trim();
+
+  items.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    title,
+    date: date || new Date().toISOString().split('T')[0],
+    cat,
+    pri,
+    note,
+    done: false,
+  });
+
+  save();
+  render();
+
+  // Reset form
+  document.getElementById('add-title').value = '';
+  document.getElementById('add-note').value = '';
+  document.getElementById('add-title').focus();
+}
+
+// ═══════════════════════════════════
+// FILTER
+// ═══════════════════════════════════
+function setFilter(f) {
+  filter = f;
+  document.querySelectorAll('.filter-chip').forEach(c => {
+    c.classList.toggle('on', c.dataset.f === f);
+  });
+  render();
+}
+
+function toggleHideDone() {
+  hideDone = !hideDone;
+  document.getElementById('hide-done-btn').classList.toggle('on', hideDone);
+  document.getElementById('hide-done-btn').textContent = hideDone ? 'show done' : 'hide done';
+  render();
+}
+
+// ═══════════════════════════════════
+// RENDER
+// ═══════════════════════════════════
+const MONTHS = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+const DAYS = ['sun','mon','tue','wed','thu','fri','sat'];
+
+function render() {
+  const list = document.getElementById('planner-list');
+  list.innerHTML = '';
+
+  // Filter
+  let filtered = items.filter(it => {
+    if (hideDone && it.done) return false;
+    if (filter !== 'all' && it.cat !== filter) return false;
+    return true;
+  });
+
+  // Sort by date
+  filtered.sort((a, b) => a.date.localeCompare(b.date));
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="empty">nothing here yet — add something above</div>';
+    return;
+  }
+
+  // Group by month
+  const groups = {};
+  filtered.forEach(it => {
+    const d = new Date(it.date + 'T00:00:00');
+    const key = `${d.getFullYear()}-${String(d.getMonth()).padStart(2,'0')}`;
+    if (!groups[key]) groups[key] = { year: d.getFullYear(), month: d.getMonth(), items: [] };
+    groups[key].items.push(it);
+  });
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const soon = new Date(today);
+  soon.setDate(soon.getDate() + 3);
+
+  Object.keys(groups).sort().forEach(key => {
+    const g = groups[key];
+
+    const section = document.createElement('div');
+    section.className = 'month-group';
+
+    const label = document.createElement('div');
+    label.className = 'month-label';
+    label.innerHTML = `${MONTHS[g.month]}<span class="year">${g.year}</span>`;
+    section.appendChild(label);
+
+    g.items.forEach(it => {
+      const d = new Date(it.date + 'T00:00:00');
+      const isOverdue = d < today && !it.done;
+      const isDueSoon = d >= today && d <= soon && !it.done;
+
+      const row = document.createElement('div');
+      row.className = `pi pri-${it.pri}${it.done ? ' done' : ''}${isOverdue ? ' overdue' : ''}${isDueSoon ? ' due-soon' : ''}`;
+
+      // Check
+      const chk = document.createElement('div');
+      chk.className = 'pi-chk' + (it.done ? ' on' : '');
+      chk.onclick = () => { it.done = !it.done; save(); render(); };
+
+      // Body
+      const body = document.createElement('div');
+      body.className = 'pi-body';
+
+      const top = document.createElement('div');
+      top.className = 'pi-top';
+
+      const title = document.createElement('span');
+      title.className = 'pi-title';
+      title.textContent = it.title;
+      top.appendChild(title);
+
+      const cat = document.createElement('span');
+      cat.className = `pi-cat ${it.cat}`;
+      cat.textContent = it.cat;
+      top.appendChild(cat);
+
+      body.appendChild(top);
+
+      const meta = document.createElement('div');
+      meta.className = 'pi-meta';
+
+      const dateStr = document.createElement('span');
+      dateStr.className = 'pi-date';
+      const dayName = DAYS[d.getDay()];
+      dateStr.textContent = `${dayName} ${d.getDate()} ${MONTHS[d.getMonth()].slice(0, 3)}`;
+      if (isOverdue) dateStr.textContent += ' · overdue';
+      meta.appendChild(dateStr);
+
+      if (it.pri !== 'med') {
+        const pri = document.createElement('span');
+        pri.className = `pi-pri ${it.pri}`;
+        pri.textContent = it.pri === 'high' ? '⬆ high' : '⬇ low';
+        meta.appendChild(pri);
+      }
+
+      if (it.note) {
+        const note = document.createElement('span');
+        note.className = 'pi-note';
+        note.textContent = it.note;
+        meta.appendChild(note);
+      }
+
+      body.appendChild(meta);
+
+      // Delete
+      const del = document.createElement('button');
+      del.className = 'pi-del';
+      del.textContent = '×';
+      del.onclick = () => {
+        items = items.filter(x => x.id !== it.id);
+        save();
+        render();
+      };
+
+      row.append(chk, body, del);
+      section.appendChild(row);
+    });
+
+    list.appendChild(section);
+  });
+}
+
+render();
+</script>
+</body>
+</html>
